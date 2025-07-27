@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:educontrol/alumno/bienvenidaAlum.dart';
-import 'package:educontrol/docente/bienvenidaDoc.dart';
+import 'package:educontrol/feactures/alumno/bienvenidaAlum.dart';
+import 'package:educontrol/feactures/docente/bienvenidaDoc.dart';
 
 void main() {
   runApp(const MyApp());
@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Login UI',
       debugShowCheckedModeBanner: false,
-      home: const LoginPage(tipo: 'alumno'), // Cambiar a 'docente' para probar
+      home: const LoginPage(tipo: 'alumno'),
     );
   }
 }
@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
 class LoginPage extends StatefulWidget {
   final String tipo;
   const LoginPage({super.key, required this.tipo});
-  
+
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
@@ -40,49 +40,63 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF080E2A),
-      body: Center(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32.0),
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                // Logo / Título
+                const Icon(Icons.school, size: 80, color: Colors.white),
+                const SizedBox(height: 10),
                 const Text(
-                  'Login',
+                  'EduControl',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 36,
+                    fontSize: 32,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 30),
+                const SizedBox(height: 40),
 
-                // Form Container
+                // Card del formulario
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.purpleAccent),
-                    borderRadius: BorderRadius.circular(10),
+                    color: const Color(0xFF1B1B3A),
+                    borderRadius: BorderRadius.circular(15),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.3),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
                   child: Column(
                     children: [
-                      const SizedBox(height: 15),
-
                       // Usuario
                       TextField(
                         style: const TextStyle(color: Colors.white),
                         decoration: InputDecoration(
-                          hintText: '@gmail.com',
-                          hintStyle: const TextStyle(color: Colors.purpleAccent),
-                          labelText: 'Usuario',
+                          hintText: 'usuario@gmail.com',
+                          hintStyle: const TextStyle(color: Colors.white54),
+                          labelText: 'Correo',
                           labelStyle: const TextStyle(color: Colors.white),
+                          prefixIcon: const Icon(Icons.email, color: Colors.purpleAccent),
+                          filled: true,
+                          fillColor: const Color(0xFF2D2D4A),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(color: Colors.purpleAccent),
-                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: Colors.transparent),
+                            borderRadius: BorderRadius.circular(10),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderSide: const BorderSide(color: Colors.greenAccent),
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(10),
                           ),
                         ),
                       ),
@@ -93,30 +107,36 @@ class _LoginPageState extends State<LoginPage> {
                         obscureText: true,
                         style: const TextStyle(color: Colors.white),
                         decoration: InputDecoration(
-                          hintText: 'pas123\$',
-                          hintStyle: const TextStyle(color: Colors.purpleAccent),
+                          hintText: '********',
+                          hintStyle: const TextStyle(color: Colors.white54),
                           labelText: 'Contraseña',
                           labelStyle: const TextStyle(color: Colors.white),
+                          prefixIcon: const Icon(Icons.lock, color: Colors.purpleAccent),
+                          filled: true,
+                          fillColor: const Color(0xFF2D2D4A),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(color: Colors.purpleAccent),
-                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: Colors.transparent),
+                            borderRadius: BorderRadius.circular(10),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderSide: const BorderSide(color: Colors.greenAccent),
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(10),
                           ),
                         ),
                       ),
                       const SizedBox(height: 20),
 
-                      // Google Sign In
+                      // Botón Google
                       ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
                           foregroundColor: Colors.black,
                           minimumSize: const Size(double.infinity, 50),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(10),
                           ),
                         ),
                         onPressed: () {},
@@ -125,22 +145,21 @@ class _LoginPageState extends State<LoginPage> {
                           width: 24,
                           height: 24,
                         ),
-                        label: const Text("Sign in with Google"),
+                        label: const Text("Continuar con Google"),
                       ),
                       const SizedBox(height: 20),
 
-                      // Register Button
+                      // Botón Registrar
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF00FFAA),
                           foregroundColor: Colors.black,
                           minimumSize: const Size(double.infinity, 50),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(10),
                           ),
                         ),
                         onPressed: () {
-                          // Redirigir según el tipo de usuario
                           if (_tipoUsuario.toLowerCase() == 'alumno') {
                             Navigator.pushReplacement(
                               context,
@@ -157,12 +176,11 @@ class _LoginPageState extends State<LoginPage> {
                             );
                           }
                         },
-                        child: const Text("Register"),
+                        child: const Text("Iniciar sesión"),
                       ),
-                      const SizedBox(height: 15),
                     ],
                   ),
-                )
+                ),
               ],
             ),
           ),
