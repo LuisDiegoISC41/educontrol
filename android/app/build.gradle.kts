@@ -9,12 +9,12 @@ plugins {
 
 android {
     namespace = "com.example.educontrol"
+    
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = "27.0.12077973"
 
     defaultConfig {
         applicationId = "com.example.educontrol"
-        minSdk = flutter.minSdkVersion
+        minSdk = 23
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -26,26 +26,43 @@ android {
         }
     }
 
-    // Configura las versiones de Java para compilación
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
 }
 
+buildscript {
+    dependencies {
+         classpath("com.android.tools.build:gradle:8.0.2")
+        classpath("com.google.gms:google-services:4.4.2") // Solo classpath aquí
+    }
+
+}
+
+dependencies {
+    implementation(platform("com.google.firebase:firebase-bom:34.0.0"))
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.android.gms:play-services-auth:20.7.0")
+}
+
 flutter {
     source = "../.."
 }
 
-// Configura Kotlin JVM target correctamente
 tasks.withType<KotlinCompile>().configureEach {
     kotlinOptions {
         jvmTarget = "11"
     }
 }
 
-// Configura Java compile options globalmente
 tasks.withType<JavaCompile>().configureEach {
     sourceCompatibility = "11"
     targetCompatibility = "11"
+}
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
 }

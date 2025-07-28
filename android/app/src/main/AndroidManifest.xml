@@ -1,4 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.CAMERA" />
     <application
         android:label="educontrol"
         android:name="${applicationName}"
@@ -30,6 +31,10 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+             <meta-data
+                android:name="com.google.android.gms.auth.api.credentials.ClientId"
+                android:value="YOUR_CLIENT_ID.apps.googleusercontent.com" />
+                
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

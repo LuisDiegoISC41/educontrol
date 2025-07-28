@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:educontrol/grupo/agregarGrupo.dart';
+import 'package:educontrol/features/grupo/agregarGrupo.dart';
+
 void main() {
   runApp(const MaterialApp(
     debugShowCheckedModeBanner: false,
@@ -7,8 +8,33 @@ void main() {
   ));
 }
 
-class WelcomePage extends StatelessWidget {
+class WelcomePage extends StatefulWidget {
   const WelcomePage({super.key});
+
+  @override
+  State<WelcomePage> createState() => _WelcomePageState();
+}
+
+class _WelcomePageState extends State<WelcomePage> {
+  // Lista dinámica para los grupos
+  List<Map<String, String>> grupos = [
+    {"title": "Programación", "code": "ISC308"},
+    {"title": "Redes", "code": "ISC108"},
+  ];
+
+  // Método para agregar nuevo grupo desde la pantalla de creación
+  Future<void> _agregarGrupo() async {
+    final nuevoGrupo = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => NuevoGrupoScreen()),
+    );
+
+    if (nuevoGrupo != null && nuevoGrupo is Map<String, String>) {
+      setState(() {
+        grupos.add(nuevoGrupo);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,85 +68,50 @@ class WelcomePage extends StatelessWidget {
               ),
               const SizedBox(height: 20),
 
-              // Contenido principal en Expanded
+              // Botón para agregar nuevo grupo
+              Center(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.all(12),
+                  ),
+                  onPressed: _agregarGrupo,
+                  child: Column(
+                    children: [
+                      Image.network(
+                        'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=Grupo123',
+                        height: 150,
+                        width: 150,
+                      ),
+                      const SizedBox(height: 10),
+                      const Text(
+                        'Generar Grupo',
+                        style: TextStyle(color: Colors.black, fontSize: 16),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 30),
+
+              // Lista dinámica de grupos
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(
-                    children: [
-                      // QR Code y botón
-                      // QR Code y botón
-                      Center(
-                        child: Column(
-                          children: [
-                            ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                padding: const EdgeInsets.all(12),
-                              ),
-                              onPressed: () {
-                                // Acción al presionar (por ejemplo navegar)
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => NuevoGrupoApp()),
-
-                                );
-                              },
-                              child: Column(
-                                children: [
-                                  Image.network(
-                                    'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=Grupo123',
-                                    height: 150,
-                                    width: 150,
-                                  ),
-                                  const SizedBox(height: 10),
-                                  const Text(
-                                    'Generar Grupo',
-                                    style: TextStyle(color: Colors.black, fontSize: 16),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
+                    children: grupos.map((grupo) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 20),
+                        child: SubjectCard(
+                          title: grupo['title']!,
+                          code: grupo['code']!,
+                          color: const Color(0xFF2D0C3F),
+                          iconUrl: 'https://img.icons8.com/color/96/conference-call.png',
                         ),
-                      ),
-
-                      const SizedBox(height: 30),
-
-                      // Search Bar
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 15),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const TextField(
-                          decoration: InputDecoration(
-                            hintText: 'Search',
-                            border: InputBorder.none,
-                            suffixIcon: Icon(Icons.search),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 30),
-
-                      // Materias
-                      SubjectCard(
-                        title: 'Programación',
-                        code: 'ISC308',
-                        color: const Color(0xFF2D0C3F),
-                        iconUrl: 'https://img.icons8.com/color/96/conference-call.png',
-                      ),
-                      const SizedBox(height: 20),
-                      SubjectCard(
-                        title: 'Redes',
-                        code: 'ISC108',
-                        color: const Color(0xFF2D0C3F),
-                        iconUrl: 'https://img.icons8.com/color/96/networking-manager.png',
-                      ),
-                    ],
+                      );
+                    }).toList(),
                   ),
                 ),
               ),
@@ -194,8 +185,6 @@ class SubjectCard extends StatelessWidget {
               ],
             ),
           ),
-
-          // Icono
           Image.network(
             iconUrl,
             height: 60,

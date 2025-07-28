@@ -1,37 +1,19 @@
 import 'package:flutter/material.dart';
 
-void main() => runApp(NuevoGrupoApp());
-
-class NuevoGrupoApp extends StatelessWidget {
-  const NuevoGrupoApp({super.key});
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Nuevo Grupo',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: const Color(0xFF0A0A2A), // Fondo oscuro azulado
-      ),
-      home: NuevoGrupoScreen(),
-    );
-  }
-}
-
 class NuevoGrupoScreen extends StatelessWidget {
- 
   final TextEditingController claseController = TextEditingController();
   final TextEditingController grupoController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF0A0A2A),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Título
               Text(
                 '¿Nuevo grupo?',
                 style: TextStyle(
@@ -41,8 +23,6 @@ class NuevoGrupoScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 40),
-
-              // Expanded para que el formulario se adapte al espacio
               Expanded(
                 child: Container(
                   width: double.infinity,
@@ -61,23 +41,6 @@ class NuevoGrupoScreen extends StatelessWidget {
                           fontSize: 16,
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Text(
-                            'Grupo',
-                            style: TextStyle(
-                              fontSize: 24,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const Spacer(),
-                          const Icon(Icons.access_time, color: Colors.greenAccent),
-                          const SizedBox(width: 10),
-                          const Icon(Icons.calendar_today, color: Colors.greenAccent),
-                        ],
-                      ),
-                      const Divider(color: Colors.white54, thickness: 1),
                       const SizedBox(height: 16),
                       TextField(
                         controller: claseController,
@@ -112,24 +75,28 @@ class NuevoGrupoScreen extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const Spacer(), // Empuja los botones al fondo del contenedor
+                      const Spacer(),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           TextButton(
                             onPressed: () {
-                              claseController.clear();
-                              grupoController.clear();
+                              Navigator.pop(context);
                             },
                             child: const Text('Cancelar', style: TextStyle(color: Colors.greenAccent)),
                           ),
                           const SizedBox(width: 16),
                           TextButton(
                             onPressed: () {
-                              // Acción para agregar
                               String clase = claseController.text;
                               String grupo = grupoController.text;
-                              print('Clase: $clase, Grupo: $grupo');
+
+                              if (clase.isNotEmpty && grupo.isNotEmpty) {
+                                Navigator.pop(context, {
+                                  "title": clase,
+                                  "code": grupo,
+                                });
+                              }
                             },
                             child: const Text('Agregar', style: TextStyle(color: Colors.greenAccent)),
                           ),

@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'core/database/appBD.dart';
 import 'login.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart'; // Se genera con "flutterfire configure"
 
-void main()async {
- WidgetsFlutterBinding.ensureInitialized();
-
-  await appBD.init(); 
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  await appBD.init();
   runApp(const MyApp());
 }
 

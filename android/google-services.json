@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "986259209756",
+    "project_id": "educontrol-63d64",
+    "storage_bucket": "educontrol-63d64.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:986259209756:android:8ab0e5087e52c25bb929d9",
+        "android_client_info": {
+          "package_name": "com.example.educontrol"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCnXDX4Fv4D7CdaE4I7afWEdzaZtE1sbxI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

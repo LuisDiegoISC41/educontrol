@@ -1,23 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:educontrol/feactures/alumno/bienvenidaAlum.dart';
-import 'package:educontrol/feactures/docente/bienvenidaDoc.dart';
-
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Login UI',
-      debugShowCheckedModeBanner: false,
-      home: const LoginPage(tipo: 'alumno'),
-    );
-  }
-}
+import 'package:educontrol/core/services/servicioGoogle.dart';
+import 'package:educontrol/features/alumno/bienvenidaAlum.dart';
+import 'package:educontrol/features/docente/bienvenidaDoc.dart';
 
 class LoginPage extends StatefulWidget {
   final String tipo;
@@ -47,7 +31,6 @@ class _LoginPageState extends State<LoginPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Logo / Título
                 const Icon(Icons.school, size: 80, color: Colors.white),
                 const SizedBox(height: 10),
                 const Text(
@@ -59,8 +42,6 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
                 const SizedBox(height: 40),
-
-                // Card del formulario
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
@@ -76,7 +57,6 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   child: Column(
                     children: [
-                      // Usuario
                       TextField(
                         style: const TextStyle(color: Colors.white),
                         decoration: InputDecoration(
@@ -101,8 +81,6 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                       const SizedBox(height: 15),
-
-                      // Contraseña
                       TextField(
                         obscureText: true,
                         style: const TextStyle(color: Colors.white),
@@ -128,8 +106,6 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                       const SizedBox(height: 20),
-
-                      // Botón Google
                       ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
@@ -139,7 +115,23 @@ class _LoginPageState extends State<LoginPage> {
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        onPressed: () {},
+                        onPressed: () async {
+                          final authService = GoogleAuthService();
+                          try {
+                            final user = await authService.signInWithGoogle(_tipoUsuario);
+                            if (user != null) {
+                              if (_tipoUsuario.toLowerCase() == 'alumno') {
+                                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const BienvenidaAlu()));
+                              } else {
+                                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const WelcomePage()));
+                              }
+                            }
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Error al iniciar sesión: $e')),
+                            );
+                          }
+                        },
                         icon: Image.network(
                           'https://img.icons8.com/color/48/000000/google-logo.png',
                           width: 24,
@@ -148,8 +140,6 @@ class _LoginPageState extends State<LoginPage> {
                         label: const Text("Continuar con Google"),
                       ),
                       const SizedBox(height: 20),
-
-                      // Botón Registrar
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF00FFAA),
@@ -161,15 +151,9 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         onPressed: () {
                           if (_tipoUsuario.toLowerCase() == 'alumno') {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(builder: (context) => const BienvenidaAlu()),
-                            );
+                            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const BienvenidaAlu()));
                           } else if (_tipoUsuario.toLowerCase() == 'docente') {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(builder: (context) => const WelcomePage()),
-                            );
+                            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const WelcomePage()));
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(content: Text('Tipo de usuario desconocido: $_tipoUsuario')),
