@@ -1,45 +1,45 @@
 class AlumnoModel {
   final int? idAlumno;
-  final String matricula;
-  final String nombre;
-  final String apellidoPaterno;
-  final String apellidoMaterno;
+  final String? matricula;
+  final String? nombre;
+  final String? apellidoPaterno;
+  final String? apellidoMaterno;
   final String correo;
-  final String contrasena;
+  final String? password;
 
   AlumnoModel({
     this.idAlumno,
-    required this.matricula,
-    required this.nombre,
-    required this.apellidoPaterno,
-    required this.apellidoMaterno,
+    this.matricula,
+    this.nombre,
+    this.apellidoPaterno,
+    this.apellidoMaterno,
     required this.correo,
-    required this.contrasena,
+    this.password,
   });
 
   /// Crear AlumnoModel desde un mapa (ej: obtenido de Supabase)
   factory AlumnoModel.fromMap(Map<String, dynamic> map) {
     return AlumnoModel(
-      idAlumno: map['ID_Alumno'] as int?,
-      matricula: map['Matricula'] ?? '',
-      nombre: map['Nombre'] ?? '',
-      apellidoPaterno: map['Apellido_Paterno'] ?? '',
-      apellidoMaterno: map['Apellido_Materno'] ?? '',
-      correo: map['Correo'] ?? '',
-      contrasena: map['Contraseña'] ?? '',
+      idAlumno: map['id_alumno'] as int?,
+      matricula: map['matricula'] ?? '',
+      nombre: map['nombre'] ?? '',
+      apellidoPaterno: map['apellido_paterno'] ?? '',
+      apellidoMaterno: map['apellido_materno'] ?? '',
+      correo: map['correo'] ?? '',
+      password: map['password'] ?? '',
     );
   }
 
   /// Convertir el modelo a un mapa (para insertar en Supabase)
   Map<String, dynamic> toMap() {
     return {
-      if (idAlumno != null) 'ID_Alumno': idAlumno,
-      'Matricula': matricula,
-      'Nombre': nombre,
-      'Apellido_Paterno': apellidoPaterno,
-      'Apellido_Materno': apellidoMaterno,
-      'Correo': correo,
-      'Contraseña': contrasena,
+      if (idAlumno != null) 'id_alumno': idAlumno,
+      'matricula': matricula,
+      'nombre': nombre,
+      'apellido_paterno': apellidoPaterno,
+      'apellido_materno': apellidoMaterno,
+      'correo': correo,
+      'password': password,
     };
   }
 
@@ -52,7 +52,7 @@ class AlumnoModel {
       apellidoPaterno: parts.length > 1 ? parts[1] : '',
       apellidoMaterno: parts.length > 2 ? parts[2] : '',
       correo: email,
-      contrasena: 'google_auth', // marcador porque no hay contraseña
+      password: 'google_auth', // marcador porque no hay contraseña
     );
   }
 
