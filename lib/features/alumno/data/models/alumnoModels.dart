@@ -46,8 +46,12 @@ class AlumnoModel {
   /// Crear AlumnoModel desde los datos de Google
   factory AlumnoModel.fromGoogle(String fullName, String email) {
     final parts = fullName.split(' ');
+    // Extrae los números al inicio del correo antes del @
+    final match = RegExp(r'^(\d+)').firstMatch(email);
+    final matricula = match != null ? match.group(1) : _generateMatricula();
+
     return AlumnoModel(
-      matricula: _generateMatricula(),
+      matricula: matricula,
       nombre: parts.isNotEmpty ? parts.first : '',
       apellidoPaterno: parts.length > 1 ? parts[1] : '',
       apellidoMaterno: parts.length > 2 ? parts[2] : '',

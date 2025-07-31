@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:educontrol/core/services/servicioGoogle.dart';
 import 'package:educontrol/features/alumno/bienvenidaAlum.dart';
 import 'package:educontrol/features/docente/bienvenidaDoc.dart';
@@ -13,11 +14,41 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   late String _tipoUsuario;
+  final TextEditingController _correoController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _tipoUsuario = widget.tipo;
+  }
+
+  Future<String?> _pedirNuevaPassword(BuildContext context) async {
+    String nuevaPassword = '';
+    return showDialog<String>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Establece una contraseña'),
+          content: TextField(
+            autofocus: true,
+            obscureText: true,
+            decoration: const InputDecoration(labelText: 'Nueva contraseña'),
+            onChanged: (value) => nuevaPassword = value,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(nuevaPassword),
+              child: const Text('Guardar'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -58,6 +89,7 @@ class _LoginPageState extends State<LoginPage> {
                   child: Column(
                     children: [
                       TextField(
+                        controller: _correoController,
                         style: const TextStyle(color: Colors.white),
                         decoration: InputDecoration(
                           hintText: 'usuario@gmail.com',
@@ -82,6 +114,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       const SizedBox(height: 15),
                       TextField(
+                        controller: _passwordController,
                         obscureText: true,
                         style: const TextStyle(color: Colors.white),
                         decoration: InputDecoration(
@@ -118,8 +151,47 @@ class _LoginPageState extends State<LoginPage> {
                         onPressed: () async {
                           final authService = GoogleAuthService();
                           try {
+                            // Cierra sesión para forzar el selector de cuentas de Google
+                            await GoogleSignIn().signOut();
                             final user = await authService.signInWithGoogle(_tipoUsuario);
                             if (user != null) {
+                              final client = GoogleAuthService().client;
+                              // Buscar en alumno
+                              final alumno = await client
+                                  .from('alumno')
+                                  .select()
+                                  .eq('correo', user.email ?? '')
+                                  .maybeSingle();
+
+                              // Buscar en docente
+                              final docente = await client
+                                  .from('docente')
+                                  .select()
+                                  .eq('correo', user.email ?? '')
+                                  .maybeSingle();
+
+                              // Si es alumno y no tiene contraseña, pedirla
+                              if (alumno != null && (alumno['password'] == 'google_auth' || alumno['password'] == null)) {
+                                final nuevaPassword = await _pedirNuevaPassword(context);
+                                if (nuevaPassword != null && nuevaPassword.isNotEmpty) {
+                                  await client
+                                      .from('alumno')
+                                      .update({'password': nuevaPassword})
+                                      .eq('correo', user.email ?? '');
+                                }
+                              }
+
+                              // Si es docente y no tiene contraseña, pedirla
+                              if (docente != null && (docente['password'] == 'google_auth' || docente['password'] == null)) {
+                                final nuevaPassword = await _pedirNuevaPassword(context);
+                                if (nuevaPassword != null && nuevaPassword.isNotEmpty) {
+                                  await client
+                                      .from('docente')
+                                      .update({'password': nuevaPassword})
+                                      .eq('correo', user.email ?? '');
+                                }
+                              }
+
                               if (_tipoUsuario.toLowerCase() == 'alumno') {
                                 Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const BienvenidaAlu()));
                               } else {
@@ -149,16 +221,69 @@ class _LoginPageState extends State<LoginPage> {
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        onPressed: () {
-                          if (_tipoUsuario.toLowerCase() == 'alumno') {
-                            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const BienvenidaAlu()));
-                          } else if (_tipoUsuario.toLowerCase() == 'docente') {
-                            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const WelcomePage()));
-                          } else {
+                        onPressed: () async {
+                          final correo = _correoController.text.trim();
+                          final password = _passwordController.text.trim();
+
+                          if (correo.isEmpty || password.isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Tipo de usuario desconocido: $_tipoUsuario')),
+                              const SnackBar(content: Text('Por favor ingresa correo y contraseña')),
                             );
+                            return;
                           }
+
+                          final client = GoogleAuthService().client;
+
+                          // Buscar en alumno
+                          final alumno = await client
+                              .from('alumno')
+                              .select()
+                              .eq('correo', correo)
+                              .maybeSingle();
+
+                          if (alumno != null) {
+                            if (alumno['password'] == 'google_auth' || alumno['password'] == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Este usuario solo puede iniciar sesión con Google o debe establecer una contraseña.')),
+                              );
+                              return;
+                            }
+                            if (alumno['password'] == password) {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(builder: (context) => const WelcomePage()),
+                              );
+                              return;
+                            }
+                          }
+
+                          // Buscar en docente
+                          final docente = await client
+                              .from('docente')
+                              .select()
+                              .eq('correo', correo)
+                              .maybeSingle();
+
+                          if (docente != null) {
+                            if (docente['password'] == 'google_auth' || docente['password'] == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Este usuario solo puede iniciar sesión con Google o debe establecer una contraseña.')),
+                              );
+                              return;
+                            }
+                            if (docente['password'] == password) {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(builder: (context) => const WelcomePage()),
+                              );
+                              return;
+                            }
+                          }
+
+                          // Si no existe en ninguna tabla o la contraseña es incorrecta
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Usuario o contraseña incorrectos')),
+                          );
                         },
                         child: const Text("Iniciar sesión"),
                       ),

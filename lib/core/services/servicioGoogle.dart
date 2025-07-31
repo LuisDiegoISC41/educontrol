@@ -61,29 +61,40 @@ class GoogleAuthService {
   Future<void> _saveUserInTable(fb_auth.User user, String tipoUsuario) async {
     final correo = user.email ?? "";
     final fullName = user.displayName ?? correo.split('@').first;
-    final table = tipoUsuario.toLowerCase() == "alumno" ? "alumno" : "docente";
+    final tipo = tipoUsuario.toLowerCase();
 
-    final existing =
-        await client.from(table).select().eq('correo', correo).maybeSingle();
-
-        if (existing == null) {
-          try {
-            if (table == "alumno") {
-              final alumno = AlumnoModel.fromGoogle(fullName, correo);
-              await client.from('alumno').insert(alumno.toMap());
-            } else {
-              final docente = DocenteModel.fromGoogle(fullName, correo);
-              await client.from('docente').insert(docente.toMap());
-            }
-            print("Usuario registrado en $table: $correo");
-          } catch (e) {
-            print("Error al insertar usuario en $table: $e");
-            rethrow;
-          }
-        } else {
-          print("Usuario ya existe en $table: $correo");
+    if (tipo == "alumno") {
+      final existing = await client.from('alumno').select().eq('correo', correo).maybeSingle();
+      if (existing == null) {
+        try {
+          final alumno = AlumnoModel.fromGoogle(fullName, correo);
+          await client.from('alumno').insert(alumno.toMap());
+          print("Usuario registrado en alumno: $correo");
+        } catch (e) {
+          print("Error al insertar usuario en alumno: $e");
+          rethrow;
         }
+      } else {
+        print("Usuario ya existe en alumno: $correo");
       }
+    } else if (tipo == "docente") {
+      final existing = await client.from('docente').select().eq('correo', correo).maybeSingle();
+      if (existing == null) {
+        try {
+          final docente = DocenteModel.fromGoogle(fullName, correo);
+          await client.from('docente').insert(docente.toMap());
+          print("Usuario registrado en docente: $correo");
+        } catch (e) {
+          print("Error al insertar usuario en docente: $e");
+          rethrow;
+        }
+      } else {
+        print("Usuario ya existe en docente: $correo");
+      }
+    } else {
+      print("Tipo de usuario desconocido: $tipoUsuario");
+    }
+  }
 
   /// Cierra sesión en Firebase, Supabase y Google
   Future<void> signOut() async {

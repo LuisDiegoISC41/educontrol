@@ -4,7 +4,7 @@ class DocenteModel {
   final String apellidoPaterno;
   final String apellidoMaterno;
   final String correo;
-  final String contrasena;
+  final String  password;
 
   DocenteModel({
     this.idDocente,
@@ -12,30 +12,30 @@ class DocenteModel {
     required this.apellidoPaterno,
     required this.apellidoMaterno,
     required this.correo,
-    required this.contrasena,
+    required this.password,
   });
 
   /// Construir desde Supabase
   factory DocenteModel.fromMap(Map<String, dynamic> map) {
     return DocenteModel(
-      idDocente: map['ID_Docente'] as int?,
-      nombre: map['Nombre'] ?? '',
-      apellidoPaterno: map['Apellido_Paterno'] ?? '',
-      apellidoMaterno: map['Apellido_Materno'] ?? '',
-      correo: map['Correo'] ?? '',
-      contrasena: map['Contraseña'] ?? '',
+      idDocente: map['id_docente'] as int?,
+      nombre: map['nombre'] ?? '',
+      apellidoPaterno: map['apellido_paterno'] ?? '',
+      apellidoMaterno: map['apellido_materno'] ?? '',
+      correo: map['correo'] ?? '',
+      password: map['contraseña'] ?? '',
     );
   }
 
   /// Convertir a Map (para guardar en Supabase)
   Map<String, dynamic> toMap() {
     return {
-      if (idDocente != null) 'ID_Docente': idDocente,
-      'Nombre': nombre,
-      'Apellido_Paterno': apellidoPaterno,
-      'Apellido_Materno': apellidoMaterno,
-      'Correo': correo,
-      'Contraseña': contrasena,
+      if (idDocente != null) 'id_docente': idDocente,
+      'nombre': nombre,
+      'apellido_paterno': apellidoPaterno,
+      'apellido_materno': apellidoMaterno,
+      'correo': correo,
+      'password': password,
     };
   }
 
@@ -47,7 +47,7 @@ class DocenteModel {
       apellidoPaterno: parts.length > 1 ? parts[1] : '',
       apellidoMaterno: parts.length > 2 ? parts[2] : '',
       correo: email,
-      contrasena: 'google_auth',
+      password: 'google_auth',
     );
   }
 }
