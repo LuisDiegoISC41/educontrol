@@ -1,35 +1,55 @@
 import 'package:flutter/material.dart';
 import 'package:educontrol/features/grupo/agregarGrupo.dart';
+import 'package:educontrol/features/grupo/models/grupoModels.dart';
+import 'package:educontrol/core/database/appBD.dart';
 
 void main() {
   runApp(const MaterialApp(
     debugShowCheckedModeBanner: false,
-    home: WelcomePage(),
+    home: WelcomePage(idDocente: 1), // Cambia el idDocente según corresponda
   ));
 }
 
 class WelcomePage extends StatefulWidget {
-  const WelcomePage({super.key});
+  final int idDocente;
+  const WelcomePage({super.key, required this.idDocente});
 
   @override
   State<WelcomePage> createState() => _WelcomePageState();
 }
 
 class _WelcomePageState extends State<WelcomePage> {
-  // Lista dinámica para los grupos
-  List<Map<String, String>> grupos = [
-    {"title": "Programación", "code": "ISC308"},
-    {"title": "Redes", "code": "ISC108"},
-  ];
+  List<GrupoModel> grupos = [];
+  bool isLoading = true;
 
-  // Método para agregar nuevo grupo desde la pantalla de creación
+  @override
+  void initState() {
+    super.initState();
+    _cargarGrupos();
+  }
+
+  Future<void> _cargarGrupos() async {
+    setState(() => isLoading = true);
+    final data = await appBD.client
+        .from('grupo')
+        .select()
+        .eq('id_docente', widget.idDocente);
+    setState(() {
+      grupos = (data as List)
+          .map((g) => GrupoModel.fromMap(g as Map<String, dynamic>))
+          .toList();
+      isLoading = false;
+    });
+  }
+
   Future<void> _agregarGrupo() async {
     final nuevoGrupo = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => NuevoGrupoScreen()),
+      MaterialPageRoute(
+        builder: (context) => NuevoGrupoScreen(idDocente: widget.idDocente),
+      ),
     );
-
-    if (nuevoGrupo != null && nuevoGrupo is Map<String, String>) {
+    if (nuevoGrupo != null && nuevoGrupo is GrupoModel) {
       setState(() {
         grupos.add(nuevoGrupo);
       });
@@ -99,21 +119,30 @@ class _WelcomePageState extends State<WelcomePage> {
 
               // Lista dinámica de grupos
               Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: grupos.map((grupo) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 20),
-                        child: SubjectCard(
-                          title: grupo['title']!,
-                          code: grupo['code']!,
-                          color: const Color(0xFF2D0C3F),
-                          iconUrl: 'https://img.icons8.com/color/96/conference-call.png',
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ),
+                child: isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : grupos.isEmpty
+                        ? const Center(
+                            child: Text(
+                              'No tienes grupos aún.',
+                              style: TextStyle(color: Colors.white70),
+                            ),
+                          )
+                        : SingleChildScrollView(
+                            child: Column(
+                              children: grupos.map((grupo) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 20),
+                                  child: SubjectCard(
+                                    title: grupo.nombre,
+                                    code: grupo.qr,
+                                    color: const Color(0xFF2D0C3F),
+                                    iconUrl: 'https://img.icons8.com/color/96/conference-call.png',
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ),
               ),
             ],
           ),

@@ -193,9 +193,19 @@ class _LoginPageState extends State<LoginPage> {
                               }
 
                               if (_tipoUsuario.toLowerCase() == 'alumno') {
-                                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const BienvenidaAlu()));
-                              } else {
-                                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const WelcomePage()));
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const BienvenidaAlu(),
+                                  ),
+                                );
+                              } else if (_tipoUsuario.toLowerCase() == 'docente' && docente != null) {
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => WelcomePage(idDocente: docente['id_docente']),
+                                  ),
+                                );
                               }
                             }
                           } catch (e) {
@@ -251,7 +261,9 @@ class _LoginPageState extends State<LoginPage> {
                             if (alumno['password'] == password) {
                               Navigator.pushReplacement(
                                 context,
-                                MaterialPageRoute(builder: (context) => const WelcomePage()),
+                                MaterialPageRoute(
+                                  builder: (context) => const BienvenidaAlu(),
+                                ),
                               );
                               return;
                             }
@@ -274,7 +286,9 @@ class _LoginPageState extends State<LoginPage> {
                             if (docente['password'] == password) {
                               Navigator.pushReplacement(
                                 context,
-                                MaterialPageRoute(builder: (context) => const WelcomePage()),
+                                MaterialPageRoute(
+                                  builder: (context) => WelcomePage(idDocente: docente['id_docente']),
+                                ),
                               );
                               return;
                             }

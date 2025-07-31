@@ -1,8 +1,46 @@
 import 'package:flutter/material.dart';
+import 'package:educontrol/features/grupo/models/grupoModels.dart';
+import 'package:educontrol/core/database/appBD.dart';
 
-class NuevoGrupoScreen extends StatelessWidget {
+class NuevoGrupoScreen extends StatefulWidget {
+  final int idDocente; // Recibe el id del docente
+
+  const NuevoGrupoScreen({super.key, required this.idDocente});
+
+  @override
+  State<NuevoGrupoScreen> createState() => _NuevoGrupoScreenState();
+}
+
+class _NuevoGrupoScreenState extends State<NuevoGrupoScreen> {
   final TextEditingController claseController = TextEditingController();
   final TextEditingController grupoController = TextEditingController();
+  bool isLoading = false;
+
+  Future<void> agregarGrupo() async {
+    final nombre = claseController.text.trim();
+    final qr = grupoController.text.trim();
+
+    if (nombre.isEmpty || qr.isEmpty) return;
+
+    setState(() => isLoading = true);
+
+    final grupo = GrupoModel(
+      nombre: nombre,
+      qr: qr,
+      idDocente: widget.idDocente,
+    );
+
+    try {
+      await appBD.client.from('grupo').insert(grupo.toMap());
+      Navigator.pop(context, grupo);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al agregar grupo: $e')),
+      );
+    } finally {
+      setState(() => isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +52,7 @@ class NuevoGrupoScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text(
+              const Text(
                 '¿Nuevo grupo?',
                 style: TextStyle(
                   fontSize: 28,
@@ -34,7 +72,7 @@ class NuevoGrupoScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      const Text(
                         'Crea un nuevo grupo',
                         style: TextStyle(
                           color: Colors.greenAccent,
@@ -87,18 +125,10 @@ class NuevoGrupoScreen extends StatelessWidget {
                           ),
                           const SizedBox(width: 16),
                           TextButton(
-                            onPressed: () {
-                              String clase = claseController.text;
-                              String grupo = grupoController.text;
-
-                              if (clase.isNotEmpty && grupo.isNotEmpty) {
-                                Navigator.pop(context, {
-                                  "title": clase,
-                                  "code": grupo,
-                                });
-                              }
-                            },
-                            child: const Text('Agregar', style: TextStyle(color: Colors.greenAccent)),
+                            onPressed: isLoading ? null : agregarGrupo,
+                            child: isLoading
+                                ? const CircularProgressIndicator()
+                                : const Text('Agregar', style: TextStyle(color: Colors.greenAccent)),
                           ),
                         ],
                       )
