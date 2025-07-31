@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:educontrol/features/grupo/models/grupoModels.dart';
+import 'package:educontrol/features/grupo/data/models/grupoModels.dart';
 import 'package:educontrol/core/database/appBD.dart';
 
 class NuevoGrupoScreen extends StatefulWidget {

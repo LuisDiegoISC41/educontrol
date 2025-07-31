@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:educontrol/core/services/servicioGoogle.dart';
-import 'package:educontrol/features/alumno/bienvenidaAlum.dart';
-import 'package:educontrol/features/docente/bienvenidaDoc.dart';
+import 'package:educontrol/features/alumno/presentation/pages/bienvenidaAlum.dart';
+import 'package:educontrol/features/docente/presentation/pages/bienvenidaDoc.dart';
 
 class LoginPage extends StatefulWidget {
   final String tipo;

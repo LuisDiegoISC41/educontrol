@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:educontrol/features/grupo/agregarGrupo.dart';
-import 'package:educontrol/features/grupo/models/grupoModels.dart';
+import 'package:educontrol/features/grupo/data/models/grupoModels.dart';
 import 'package:educontrol/core/database/appBD.dart';
+import 'package:educontrol/features/asistencia/asistenciados.dart'; 
 
 void main() {
   runApp(const MaterialApp(
@@ -202,7 +203,14 @@ class SubjectCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 10),
                     ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => AttendanceScreen(grupo: title),
+                          ),
+                        );
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF00FFAA),
                         foregroundColor: Colors.black,
