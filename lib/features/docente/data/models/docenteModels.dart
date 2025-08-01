@@ -1,24 +1,27 @@
-class DocenteModel {
-  final int? idDocente;
-  final String nombre;
-  final String apellidoPaterno;
-  final String apellidoMaterno;
-  final String correo;
-  final String  password;
+import '../../domain/entities/docente.dart';
+
+class DocenteModel extends Docente {
+  final String password;
 
   DocenteModel({
-    this.idDocente,
-    required this.nombre,
-    required this.apellidoPaterno,
-    required this.apellidoMaterno,
-    required this.correo,
+    int? id,
+    required String nombre,
+    required String apellidoPaterno,
+    required String apellidoMaterno,
+    required String correo,
     required this.password,
-  });
+  }) : super(
+          id: id,
+          nombre: nombre,
+          apellidoPaterno: apellidoPaterno,
+          apellidoMaterno: apellidoMaterno,
+          correo: correo,
+        );
 
   /// Construir desde Supabase
   factory DocenteModel.fromMap(Map<String, dynamic> map) {
     return DocenteModel(
-      idDocente: map['id_docente'] as int?,
+      id: map['id_docente'] as int?,
       nombre: map['nombre'] ?? '',
       apellidoPaterno: map['apellido_paterno'] ?? '',
       apellidoMaterno: map['apellido_materno'] ?? '',
@@ -30,7 +33,7 @@ class DocenteModel {
   /// Convertir a Map (para guardar en Supabase)
   Map<String, dynamic> toMap() {
     return {
-      if (idDocente != null) 'id_docente': idDocente,
+      if (id != null) 'id_docente': id,
       'nombre': nombre,
       'apellido_paterno': apellidoPaterno,
       'apellido_materno': apellidoMaterno,

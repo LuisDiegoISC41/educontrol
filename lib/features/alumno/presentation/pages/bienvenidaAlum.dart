@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../asistencia/asistenciados.dart';
+import '../../../asistencia/presentation/pages/asistenciados.dart';
 import '../../../asistencia/qrScanner.dart';
 import '../widgets/alumnoWidgets.dart';
 
