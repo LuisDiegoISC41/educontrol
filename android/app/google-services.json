@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "986259209756",
+    "project_id": "educontrol-63d64",
+    "storage_bucket": "educontrol-63d64.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:986259209756:android:8ab0e5087e52c25bb929d9",
+        "android_client_info": {
+          "package_name": "com.example.educontrol"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "986259209756-7o6534am11o9teqq57dd6sqcaufibkcl.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.educontrol",
+            "certificate_hash": "bf5c322a8a91e2fba4ca37cf33317aa57e93a490"
+          }
+        },
+        {
+          "client_id": "986259209756-golf3c4opu43a5qdu6v9p1vcigje4cck.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCnXDX4Fv4D7CdaE4I7afWEdzaZtE1sbxI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "986259209756-golf3c4opu43a5qdu6v9p1vcigje4cck.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
