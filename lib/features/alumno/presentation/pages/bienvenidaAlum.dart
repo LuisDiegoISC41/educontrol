@@ -23,13 +23,7 @@ class _BienvenidaAluState extends State<BienvenidaAlu> {
   int? idAlumno; // ID cargado desde Supabase
   bool cargando = true;
 
-  final List<Map<String, String>> subjects = [
-    {'name': 'Inglés', 'date': '07/07/25'},
-    {'name': 'Seguridad', 'date': '07/07/25'},
-    {'name': 'Programación', 'date': '07/07/25'},
-    {'name': 'Matemáticas', 'date': '06/07/25'},
-    {'name': 'Historia', 'date': '06/07/25'},
-  ];
+  List<Map<String, dynamic>> subjects = [];
 
   @override
   void initState() {
@@ -38,26 +32,73 @@ class _BienvenidaAluState extends State<BienvenidaAlu> {
   }
 
   Future<void> _cargarIdAlumno() async {
-    final response = await Supabase.instance.client
-        .from('alumno')
-        .select('id_alumno')
-        .eq('matricula', widget.matricula)
-        .maybeSingle();
+    try {
+      final response = await Supabase.instance.client
+          .from('alumno')
+          .select('id_alumno')
+          .eq('matricula', widget.matricula)
+          .maybeSingle();
 
-    if (response != null) {
-      setState(() {
-        idAlumno = response['id_alumno'] as int;
-        cargando = false;
-      });
-    } else {
+      if (response != null) {
+        setState(() {
+          idAlumno = response['id_alumno'] as int;
+        });
+        print('ID alumno encontrado: $idAlumno');
+        await _cargarClases();
+      } else {
+        print('No se encontró el alumno');
+        setState(() {
+          cargando = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No se encontró el alumno')),
+        );
+      }
+    } catch (e, s) {
+      print('Error en _cargarIdAlumno: $e');
+      print(s);
       setState(() {
         cargando = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No se encontró el alumno')),
+        SnackBar(content: Text('Error al cargar el alumno: $e')),
       );
     }
   }
+
+  Future<void> _cargarClases() async {
+    if (idAlumno == null) return;
+
+    try {
+      final response = await Supabase.instance.client
+          .from('alumno_grupo')
+          .select('fecha_ingreso, grupo(nombre)')
+          .eq('id_alumno', idAlumno!);
+
+      print('Respuesta de clases: $response');
+
+      setState(() {
+        subjects = (response as List)
+            .map((e) => {
+                  'name': e['grupo']['nombre'] as String,
+                  'date': e['fecha_ingreso'] != null
+                      ? (e['fecha_ingreso'] as String).split('T').first
+                      : '',
+                })
+            .toList();
+        cargando = false;
+      });
+    } catch (e, s) {
+      print('Error en _cargarClases: $e');
+      print(s);
+      setState(() {
+        cargando = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al cargar las clases: $e')),
+      );
+    }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -85,13 +126,15 @@ class _BienvenidaAluState extends State<BienvenidaAlu> {
                               width: 2,
                             ),
                           ),
-                          child: const Icon(Icons.person, color: Colors.white, size: 24),
+                          child:
+                              const Icon(Icons.person, color: Colors.white, size: 24),
                         ),
                       ],
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -118,26 +161,33 @@ class _BienvenidaAluState extends State<BienvenidaAlu> {
                           borderRadius: BorderRadius.circular(20),
                         ),
                         padding: const EdgeInsets.all(16),
-                        child: ListView.builder(
-                          itemCount: subjects.length,
-                          itemBuilder: (context, index) {
-                            final subject = subjects[index];
-                            return SubjectCard(
-                              name: subject['name']!,
-                              date: subject['date']!,
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => AsistenciasScreen(
-                                      materia: subject['name']!,
-                                    ),
-                                  ),
-                                );
-                              },
-                            );
-                          },
-                        ),
+                        child: subjects.isEmpty
+                            ? const Center(
+                                child: Text(
+                                  'No hay clases registradas',
+                                  style: TextStyle(color: Colors.white70),
+                                ),
+                              )
+                            : ListView.builder(
+                                itemCount: subjects.length,
+                                itemBuilder: (context, index) {
+                                  final subject = subjects[index];
+                                  return SubjectCard(
+                                    name: subject['name'],
+                                    date: subject['date'],
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => AsistenciasScreen(
+                                            materia: subject['name'],
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
                       ),
                     ),
                   ),
@@ -146,7 +196,8 @@ class _BienvenidaAluState extends State<BienvenidaAlu> {
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          if (idAlumno == null) {
+          final id = idAlumno;
+          if (id == null) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('No se pudo obtener el ID del alumno')),
             );
@@ -156,13 +207,14 @@ class _BienvenidaAluState extends State<BienvenidaAlu> {
           final qrResult = await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => EscanearQRScreen(idAlumno: idAlumno!),
+              builder: (context) => EscanearQRScreen(idAlumno: id),
             ),
           );
           if (qrResult != null) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('Código escaneado: $qrResult')),
             );
+            await _cargarClases();
           }
         },
         backgroundColor: const Color(0xFFD946EF),
