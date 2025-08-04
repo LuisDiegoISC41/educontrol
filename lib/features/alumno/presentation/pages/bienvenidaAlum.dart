@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../asistencia/asistencia.dart';
-import '../../../asistencia/qrScanner.dart';
+import 'qrScanner.dart'; // Pantalla para registrar a un grupo
+import '../../../asistencia/qrAsistencia.dart'; // Nueva pantalla para registrar asistencia
 import '../widgets/alumnoWidgets.dart';
 
 class BienvenidaAlu extends StatefulWidget {
@@ -98,7 +99,7 @@ class _BienvenidaAluState extends State<BienvenidaAlu> {
         SnackBar(content: Text('Error al cargar las clases: $e')),
       );
     }
-}
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -126,15 +127,15 @@ class _BienvenidaAluState extends State<BienvenidaAlu> {
                               width: 2,
                             ),
                           ),
-                          child:
-                              const Icon(Icons.person, color: Colors.white, size: 24),
+                          child: const Icon(Icons.person,
+                              color: Colors.white, size: 24),
                         ),
                       ],
                     ),
                   ),
                   Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 20),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -179,7 +180,8 @@ class _BienvenidaAluState extends State<BienvenidaAlu> {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => AsistenciasScreen(
+                                          builder: (context) =>
+                                              AsistenciasScreen(
                                             materia: subject['name'],
                                           ),
                                         ),
@@ -195,27 +197,56 @@ class _BienvenidaAluState extends State<BienvenidaAlu> {
               ),
             ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          final id = idAlumno;
-          if (id == null) {
+        onPressed: () {
+          if (idAlumno == null) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('No se pudo obtener el ID del alumno')),
+              const SnackBar(
+                  content: Text('No se pudo obtener el ID del alumno')),
             );
             return;
           }
 
-          final qrResult = await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => EscanearQRScreen(idAlumno: id),
-            ),
+          showModalBottomSheet(
+            context: context,
+            builder: (context) {
+              return SafeArea(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ListTile(
+                      leading: const Icon(Icons.group_add),
+                      title: const Text('Registrar a un grupo'),
+                      onTap: () async {
+                        Navigator.pop(context);
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                EscanearQRScreen(idAlumno: idAlumno!),
+                          ),
+                        );
+                        await _cargarClases();
+                      },
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.qr_code),
+                      title: const Text('Registrar asistencia'),
+                      onTap: () async {
+                        Navigator.pop(context);
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                QrAsistenciaScreen(idAlumno: idAlumno!),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              );
+            },
           );
-          if (qrResult != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Código escaneado: $qrResult')),
-            );
-            await _cargarClases();
-          }
         },
         backgroundColor: const Color(0xFFD946EF),
         elevation: 12,

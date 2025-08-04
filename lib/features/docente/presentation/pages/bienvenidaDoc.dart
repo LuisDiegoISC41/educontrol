@@ -133,6 +133,7 @@ class _WelcomePageState extends State<WelcomePage> {
                                     title: grupo.nombre,
                                     qrGrupo: grupo.idGrupo.toString(),
                                     code: grupo.grupo,
+                                    idDocente: widget.idDocente,
                                     color: const Color(0xFF2D0C3F),
                                     iconUrl: 'https://img.icons8.com/color/96/conference-call.png',
                                   ),

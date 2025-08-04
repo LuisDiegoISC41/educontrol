@@ -6,6 +6,7 @@ class SubjectCard extends StatelessWidget {
   final String title;
   final String code;
   final String qrGrupo; // Recibirá solo el ID como string
+  final int idDocente; // Nuevo parámetro para idDocente
   final Color color;
   final String iconUrl;
 
@@ -14,6 +15,7 @@ class SubjectCard extends StatelessWidget {
     required this.title,
     required this.code,
     required this.qrGrupo,
+    required this.idDocente,  // Nuevo parámetro requerido
     required this.color,
     required this.iconUrl,
   });
@@ -79,7 +81,10 @@ class SubjectCard extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => AttendanceScreen(grupo: title),
+                            builder: (context) => AttendanceScreen(
+                              grupo: title,
+                              idDocente: idDocente,  // PASAR idDocente aquí
+                            ),
                           ),
                         );
                       },

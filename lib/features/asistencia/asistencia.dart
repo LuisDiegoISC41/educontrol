@@ -3,14 +3,17 @@ import 'package:table_calendar/table_calendar.dart';
 
 class AsistenciasScreen extends StatefulWidget {
   final String materia;
-  const AsistenciasScreen({super.key, required this.materia});
 
+  const AsistenciasScreen({super.key, required this.materia});
   @override
   State<AsistenciasScreen> createState() => _AsistenciasScreenState();
 }
 
 class _AsistenciasScreenState extends State<AsistenciasScreen> {
   late Map<DateTime, String> estados; // Estado de cada fecha
+
+  // Variable para manejar la fecha seleccionada en el calendario
+  DateTime _fechaSeleccionada = DateTime.now();
 
   @override
   void initState() {
@@ -49,10 +52,11 @@ class _AsistenciasScreenState extends State<AsistenciasScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Row(
+              // Título y avatar
+              Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
+                  const Text(
                     'Asistencias',
                     style: TextStyle(
                       fontSize: 32,
@@ -60,9 +64,18 @@ class _AsistenciasScreenState extends State<AsistenciasScreen> {
                       color: Colors.white,
                     ),
                   ),
+                  // Si el asset avatar.png te da error, asegúrate que exista en assets y esté declarado en pubspec.yaml
+                  // Mientras tanto puedes comentar esta línea o poner un icono:
+                  /*
                   CircleAvatar(
                     radius: 24,
                     backgroundImage: AssetImage('assets/avatar.png'),
+                  ),
+                  */
+                  CircleAvatar(
+                    radius: 24,
+                    backgroundColor: Colors.purpleAccent,
+                    child: const Icon(Icons.person, color: Colors.white),
                   ),
                 ],
               ),
@@ -85,8 +98,25 @@ class _AsistenciasScreenState extends State<AsistenciasScreen> {
                   child: TableCalendar(
                     firstDay: DateTime.utc(2025, 1, 1),
                     lastDay: DateTime.utc(2025, 12, 31),
-                    focusedDay: DateTime.now(),
-                    calendarStyle: CalendarStyle(
+                    focusedDay: _fechaSeleccionada,
+                    selectedDayPredicate: (day) => isSameDay(day, _fechaSeleccionada),
+                    onDaySelected: (selectedDay, focusedDay) {
+                      setState(() {
+                        _fechaSeleccionada = selectedDay;
+                      });
+                    },
+                    headerStyle: HeaderStyle(
+                      titleTextStyle: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      formatButtonVisible: false,
+                      leftChevronIcon: const Icon(Icons.chevron_left, color: Colors.white),
+                      rightChevronIcon: const Icon(Icons.chevron_right, color: Colors.white),
+                      headerPadding: const EdgeInsets.symmetric(vertical: 8),
+                    ),
+                    calendarStyle: const CalendarStyle(
                       todayDecoration: BoxDecoration(
                         color: Colors.blueAccent,
                         shape: BoxShape.circle,
