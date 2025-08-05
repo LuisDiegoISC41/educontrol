@@ -22,9 +22,9 @@ class _QrAsistenciaScreenState extends State<QrAsistenciaScreen> {
     final supabase = Supabase.instance.client;
 
     try {
-      final now = DateTime.now().toUtc();
+      final now = DateTime.now(); // Fecha local
 
-      // 1. Buscar sesión por token
+      // Buscar sesión por token
       final session = await supabase
           .from('sesion_clase')
           .select('id_sesion, id_grupo, fecha')
@@ -35,7 +35,7 @@ class _QrAsistenciaScreenState extends State<QrAsistenciaScreen> {
         throw 'Código QR inválido o expirado';
       }
 
-      final sessionDate = DateTime.parse(session['fecha']).toUtc();
+      final sessionDate = DateTime.parse(session['fecha']);
       final sessionDay = DateTime(sessionDate.year, sessionDate.month, sessionDate.day);
       final today = DateTime(now.year, now.month, now.day);
 
@@ -46,7 +46,7 @@ class _QrAsistenciaScreenState extends State<QrAsistenciaScreen> {
       final String idSesion = session['id_sesion'];
       final int idGrupo = session['id_grupo'];
 
-      // 2. Verificar si el alumno pertenece al grupo
+      // Verificar si alumno pertenece al grupo
       final pertenece = await supabase
           .from('alumno_grupo')
           .select()
@@ -58,7 +58,7 @@ class _QrAsistenciaScreenState extends State<QrAsistenciaScreen> {
         throw 'No perteneces a este grupo';
       }
 
-      // 3. Verificar si ya registró asistencia en esta sesión
+      // Verificar si ya registró asistencia
       final asistenciaExistente = await supabase
           .from('asistencia')
           .select('id_asistencia')
@@ -68,24 +68,22 @@ class _QrAsistenciaScreenState extends State<QrAsistenciaScreen> {
 
       if (asistenciaExistente != null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Ya habías registrado tu asistencia')),
+          const SnackBar(content: Text('Ya registraste tu asistencia')),
         );
       } else {
-        // 4. Insertar asistencia con fecha y hora exactas
+        // Insertar asistencia
         await supabase.from('asistencia').insert({
           'estado': 'Asistencia',
-          'fecha': sessionDay.toIso8601String().substring(0, 10),
+          'fecha': now.toIso8601String().substring(0, 10),
           'fecha_hora': now.toIso8601String(),
           'id_alumno': widget.idAlumno,
           'id_sesion': idSesion,
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Asistencia registrada correctamente')),
+          const SnackBar(content: Text('Asistencia registrada con éxito')),
         );
       }
-
-      Navigator.pop(context);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
@@ -95,31 +93,27 @@ class _QrAsistenciaScreenState extends State<QrAsistenciaScreen> {
     }
   }
 
-  Future<void> onDetect(BarcodeCapture capture) async {
-    if (isProcessing) return;
-    final String? code = capture.barcodes.first.rawValue;
-    if (code == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('QR vacío')),
-      );
-      return;
-    }
-    await registrarAsistencia(code);
-  }
-
-  @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Escanear QR de Asistencia')),
+      appBar: AppBar(
+        title: const Text('Escanear QR para Asistencia'),
+        backgroundColor: const Color(0xFF0A0C2A),
+      ),
       body: MobileScanner(
         controller: controller,
-        onDetect: onDetect,
+        onDetect: (capture) async {
+          if (isProcessing) return;  // evita múltiples procesos simultáneos
+
+          final barcodes = capture.barcodes;
+          for (final barcode in barcodes) {
+            final String? code = barcode.rawValue;
+            if (code != null) {
+              await registrarAsistencia(code);
+              break; // solo procesa el primero para evitar repeticiones
+            }
+          }
+        },
       ),
     );
   }

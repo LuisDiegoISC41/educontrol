@@ -1,3 +1,5 @@
+// AttendanceScreen.dart
+
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -85,7 +87,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       if (grupoRes == null) throw 'Grupo no encontrado';
 
       final idGrupo = grupoRes['id_grupo'];
-      final ahora = DateTime.now().toUtc();
+      final ahora = DateTime.now(); // <-- Aquí sin .toUtc()
 
       // Consultar última sesión creada para ese grupo
       final sesiones = await supabase
@@ -99,7 +101,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
       if (sesiones.isNotEmpty) {
         final sesion = sesiones.first;
-        final fechaSesion = DateTime.parse(sesion['fecha']).toUtc();
+        final fechaSesion = DateTime.parse(sesion['fecha']); // sin toUtc()
 
         final diferencia = ahora.difference(fechaSesion);
         if (diferencia.inMinutes < 10) {
@@ -118,7 +120,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
         await supabase.from('sesion_clase').insert({
           'id_grupo': idGrupo,
-          'fecha': ahora.toIso8601String(), // Guardar fecha y hora exactas
+          'fecha': ahora.toIso8601String(),
           'qr_token': qrToken,
           'creada_por': widget.idDocente,
         });
@@ -176,7 +178,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       if (grupoRes == null) throw 'Grupo no encontrado';
 
       final idGrupo = grupoRes['id_grupo'];
-      final ahora = DateTime.now().toUtc();
+      final ahora = DateTime.now(); // <-- Aquí sin .toUtc()
 
       // Crear nueva sesión manual si no existe
       final qrToken = '${idGrupo}_${ahora.millisecondsSinceEpoch}';

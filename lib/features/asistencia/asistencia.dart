@@ -10,24 +10,10 @@ class AsistenciasScreen extends StatefulWidget {
 }
 
 class _AsistenciasScreenState extends State<AsistenciasScreen> {
-  late Map<DateTime, String> estados; // Estado de cada fecha
+  // Mapa de estados vacio inicialmente
+  Map<DateTime, String> estados = {};
 
-  // Variable para manejar la fecha seleccionada en el calendario
   DateTime _fechaSeleccionada = DateTime.now();
-
-  @override
-  void initState() {
-    super.initState();
-    estados = {
-      DateTime(2025, 7, 17): 'Asistencia',
-      DateTime(2025, 7, 18): 'Retardo',
-      DateTime(2025, 7, 21): 'Falta',
-      DateTime(2025, 7, 22): 'Asistencia',
-      DateTime(2025, 7, 23): 'Retardo',
-      DateTime(2025, 7, 24): 'Falta',
-      DateTime(2025, 7, 25): 'Asistencia',
-    };
-  }
 
   Color _getColor(String? estado) {
     switch (estado) {
@@ -40,6 +26,13 @@ class _AsistenciasScreenState extends State<AsistenciasScreen> {
       default:
         return Colors.grey;
     }
+  }
+
+  // Método para actualizar estados con nuevas fechas (p.ej, al escanear)
+  void actualizarEstado(DateTime fecha, String estado) {
+    setState(() {
+      estados[DateTime(fecha.year, fecha.month, fecha.day)] = estado;
+    });
   }
 
   @override
@@ -64,14 +57,6 @@ class _AsistenciasScreenState extends State<AsistenciasScreen> {
                       color: Colors.white,
                     ),
                   ),
-                  // Si el asset avatar.png te da error, asegúrate que exista en assets y esté declarado en pubspec.yaml
-                  // Mientras tanto puedes comentar esta línea o poner un icono:
-                  /*
-                  CircleAvatar(
-                    radius: 24,
-                    backgroundImage: AssetImage('assets/avatar.png'),
-                  ),
-                  */
                   CircleAvatar(
                     radius: 24,
                     backgroundColor: Colors.purpleAccent,
