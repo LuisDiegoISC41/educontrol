@@ -85,7 +85,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       if (grupoRes == null) throw 'Grupo no encontrado';
 
       final idGrupo = grupoRes['id_grupo'];
-      final ahora = DateTime.now().toUtc();
+      final ahora = DateTime.now();
 
       // Consultar última sesión creada para ese grupo
       final sesiones = await supabase
@@ -99,10 +99,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
       if (sesiones.isNotEmpty) {
         final sesion = sesiones.first;
-        final fechaSesion = DateTime.parse(sesion['fecha']).toUtc();
+        final fechaSesion = DateTime.parse(sesion['fecha']);
 
         final diferencia = ahora.difference(fechaSesion);
-        if (diferencia.inMinutes < 10) {
+        if (diferencia.inMinutes < 3) {
           // Ya hay QR válido
           sesionExistente = sesion;
         }
@@ -176,7 +176,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       if (grupoRes == null) throw 'Grupo no encontrado';
 
       final idGrupo = grupoRes['id_grupo'];
-      final ahora = DateTime.now().toUtc();
+      final ahora = DateTime.now();
 
       // Crear nueva sesión manual si no existe
       final qrToken = '${idGrupo}_${ahora.millisecondsSinceEpoch}';
@@ -269,36 +269,36 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 child: cargando
                     ? const Center(child: CircularProgressIndicator())
                     : ListView.builder(
-                        itemCount: alumnos.length,
-                        itemBuilder: (context, index) {
-                          return ListTile(
-                            leading: const CircleAvatar(
-                              backgroundColor: Colors.greenAccent,
-                              child: Text('A', style: TextStyle(color: Colors.black)),
-                            ),
-                            title: Text(alumnos[index]['nombre'], style: const TextStyle(color: Colors.white)),
-                            subtitle: Text('Matrícula: ${alumnos[index]['matricula']}', style: const TextStyle(color: Colors.white70)),
-                            trailing: Checkbox(
-                              value: attendance[index],
-                              onChanged: (value) {
-                                setState(() {
-                                  attendance[index] = value!;
-                                });
-                              },
-                              checkColor: Colors.white,
-                              activeColor: Colors.deepPurpleAccent,
-                            ),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => AsistenciasScreen(materia: alumnos[index]['nombre']),
-                                ),
-                              );
-                            },
-                          );
-                        },
+                  itemCount: alumnos.length,
+                  itemBuilder: (context, index) {
+                    return ListTile(
+                      leading: const CircleAvatar(
+                        backgroundColor: Colors.greenAccent,
+                        child: Text('A', style: TextStyle(color: Colors.black)),
                       ),
+                      title: Text(alumnos[index]['nombre'], style: const TextStyle(color: Colors.white)),
+                      subtitle: Text('Matrícula: ${alumnos[index]['matricula']}', style: const TextStyle(color: Colors.white70)),
+                      trailing: Checkbox(
+                        value: attendance[index],
+                        onChanged: (value) {
+                          setState(() {
+                            attendance[index] = value!;
+                          });
+                        },
+                        checkColor: Colors.white,
+                        activeColor: Colors.deepPurpleAccent,
+                      ),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => AsistenciasScreen(materia: alumnos[index]['nombre']),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
               ),
 
               Row(

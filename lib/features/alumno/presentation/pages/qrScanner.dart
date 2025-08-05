@@ -23,9 +23,14 @@ class _EscanearQRScreenState extends State<EscanearQRScreen> {
 
   Future<void> agregarAlumnoAGrupo(int idGrupo) async {
     try {
+      final hoy= DateTime.now();
+      final fechalocal=DateTime(hoy.year,hoy.month,hoy.day);
+      final fechaFormato= fechalocal.toIso8601String().substring(0,10);
+
       await Supabase.instance.client.from('alumno_grupo').insert({
         'id_alumno': widget.idAlumno,
         'id_grupo': idGrupo,
+        'fecha_ingreso':fechaFormato,
       });
 
       ScaffoldMessenger.of(context).showSnackBar(

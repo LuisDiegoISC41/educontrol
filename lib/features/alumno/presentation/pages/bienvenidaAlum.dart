@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../asistencia/EscanearQrAsistencia.dart';
 import '../../../asistencia/asistencia.dart';
 import 'qrScanner.dart'; // Pantalla para registrar a un grupo
 import '../../../asistencia/qrAsistencia.dart'; // Nueva pantalla para registrar asistencia
@@ -221,8 +222,7 @@ class _BienvenidaAluState extends State<BienvenidaAlu> {
                         await Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) =>
-                                EscanearQRScreen(idAlumno: idAlumno!),
+                            builder: (context) => EscanearQRScreen(idAlumno: idAlumno!),
                           ),
                         );
                         await _cargarClases();
@@ -236,8 +236,8 @@ class _BienvenidaAluState extends State<BienvenidaAlu> {
                         await Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) =>
-                                QrAsistenciaScreen(idAlumno: idAlumno!),
+
+                            builder: (context) => EscanearQrAsistencia(idAlumno: idAlumno!),
                           ),
                         );
                       },

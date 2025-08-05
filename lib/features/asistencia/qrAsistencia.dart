@@ -1,125 +1,171 @@
 import 'package:flutter/material.dart';
-import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:uuid/uuid.dart';
 
-class QrAsistenciaScreen extends StatefulWidget {
-  final int idAlumno;
+class QRAsistenciaScreen extends StatefulWidget {
+  final int idGrupo;
+  final int idDocente;
 
-  const QrAsistenciaScreen({super.key, required this.idAlumno});
+  const QRAsistenciaScreen({
+    super.key,
+    required this.idGrupo,
+    required this.idDocente,
+  });
 
   @override
-  _QrAsistenciaScreenState createState() => _QrAsistenciaScreenState();
+  State<QRAsistenciaScreen> createState() => _QRAsistenciaScreenState();
 }
 
-class _QrAsistenciaScreenState extends State<QrAsistenciaScreen> {
-  final MobileScannerController controller = MobileScannerController();
-  bool isProcessing = false;
+class _QRAsistenciaScreenState extends State<QRAsistenciaScreen> {
+  String? qrToken;
+  int? idSesion;
+  bool qrExpirado = false;
 
-  Future<void> registrarAsistencia(String token) async {
-    if (isProcessing) return;
-    setState(() => isProcessing = true);
+  @override
+  void initState() {
+    super.initState();
+    _verificarSesionDelDia();
+  }
 
-    final supabase = Supabase.instance.client;
+  // Función para verificar si ya hay una sesión activa hoy
+  Future<void> _verificarSesionDelDia() async {
+    final now = DateTime.now();
+    final hoy = DateTime(now.year, now.month, now.day);
 
-    try {
-      final now = DateTime.now().toUtc();
+    final response = await Supabase.instance.client
+        .from('sesionclase')
+        .select()
+        .eq('id_grupo', widget.idGrupo)
+        .gte('fecha', hoy.toIso8601String())
+        .order('fecha', ascending: false)
+        .limit(1);
 
-      // 1. Buscar sesión por token
-      final session = await supabase
-          .from('sesion_clase')
-          .select('id_sesion, id_grupo, fecha')
-          .eq('qr_token', token)
-          .maybeSingle();
+    if (response.isNotEmpty) {
+      final sesion = response.first;
+      final DateTime fechaSesion = DateTime.parse(sesion['fecha']);
+      final Duration diferencia = now.difference(fechaSesion);
 
-      if (session == null) {
-        throw 'Código QR inválido o expirado';
-      }
-
-      final sessionDate = DateTime.parse(session['fecha']).toUtc();
-      final sessionDay = DateTime(sessionDate.year, sessionDate.month, sessionDate.day);
-      final today = DateTime(now.year, now.month, now.day);
-
-      if (sessionDay != today) {
-        throw 'Código QR no válido para hoy';
-      }
-
-      final String idSesion = session['id_sesion'];
-      final int idGrupo = session['id_grupo'];
-
-      // 2. Verificar si el alumno pertenece al grupo
-      final pertenece = await supabase
-          .from('alumno_grupo')
-          .select()
-          .eq('id_alumno', widget.idAlumno)
-          .eq('id_grupo', idGrupo)
-          .maybeSingle();
-
-      if (pertenece == null) {
-        throw 'No perteneces a este grupo';
-      }
-
-      // 3. Verificar si ya registró asistencia en esta sesión
-      final asistenciaExistente = await supabase
-          .from('asistencia')
-          .select('id_asistencia')
-          .eq('id_alumno', widget.idAlumno)
-          .eq('id_sesion', idSesion)
-          .maybeSingle();
-
-      if (asistenciaExistente != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Ya habías registrado tu asistencia')),
-        );
+      if (diferencia.inMinutes < 3) {
+        // Aún es válida
+        setState(() {
+          qrToken = sesion['qr_token'];
+          idSesion = sesion['id_sesion'];
+        });
       } else {
-        // 4. Insertar asistencia con fecha y hora exactas
-        await supabase.from('asistencia').insert({
-          'estado': 'Asistencia',
-          'fecha': sessionDay.toIso8601String().substring(0, 10),
-          'fecha_hora': now.toIso8601String(),
-          'id_alumno': widget.idAlumno,
-          'id_sesion': idSesion,
+        // Ya expiró el QR
+        setState(() {
+          qrExpirado = true;
         });
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Asistencia registrada correctamente')),
-        );
+        await _marcarFaltasAutomaticas(sesion['id_sesion']);
       }
-
-      Navigator.pop(context);
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
-    } finally {
-      setState(() => isProcessing = false);
     }
   }
 
-  Future<void> onDetect(BarcodeCapture capture) async {
-    if (isProcessing) return;
-    final String? code = capture.barcodes.first.rawValue;
-    if (code == null) {
+  Future<void> _marcarFaltasAutomaticas(int idSesion) async {
+    // Obtener los alumnos del grupo
+    final alumnos = await Supabase.instance.client
+        .from('alumno_grupo')
+        .select('id_alumno')
+        .eq('id_grupo', widget.idGrupo);
+
+    for (final alumno in alumnos) {
+      final existeAsistencia = await Supabase.instance.client
+          .from('asistencia')
+          .select()
+          .eq('id_sesion', idSesion)
+          .eq('id_alumno', alumno['id_alumno'])
+          .maybeSingle();
+
+      if (existeAsistencia == null) {
+        await Supabase.instance.client.from('asistencia').insert({
+          'id_sesion': idSesion,
+          'id_alumno': alumno['id_alumno'],
+          'estado': 'Falta',
+        });
+      }
+    }
+  }
+
+  Future<void> _generarNuevoQR() async {
+    final now = DateTime.now();
+    final hoy = DateTime(now.year, now.month, now.day);
+
+    // Verifica si ya existe una sesión hoy
+    final existe = await Supabase.instance.client
+        .from('sesionclase')
+        .select()
+        .eq('id_grupo', widget.idGrupo)
+        .gte('fecha', hoy.toIso8601String())
+        .maybeSingle();
+
+    if (existe != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('QR vacío')),
+        const SnackBar(content: Text('Ya se generó un QR hoy para este grupo')),
       );
       return;
     }
-    await registrarAsistencia(code);
+
+    final nuevoQr = const Uuid().v4();
+    final nuevaSesion = await Supabase.instance.client
+        .from('sesionclase')
+        .insert({
+      'id_grupo': widget.idGrupo,
+      'fecha': now.toIso8601String(),
+      'qr_token': nuevoQr,
+      'creada_por': widget.idDocente,
+    })
+        .select();
+
+    if (nuevaSesion.isNotEmpty) {
+      setState(() {
+        qrToken = nuevoQr;
+        idSesion = nuevaSesion.first['id_sesion'];
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error al generar QR')),
+      );
+    }
   }
 
-  @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Escanear QR de Asistencia')),
-      body: MobileScanner(
-        controller: controller,
-        onDetect: onDetect,
+      appBar: AppBar(title: const Text('QR de Asistencia')),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            qrToken != null
+                ? Column(
+              children: [
+                const Text(
+                  'Código QR generado:',
+                  style: TextStyle(fontSize: 18),
+                ),
+                const SizedBox(height: 10),
+                SelectableText(
+                  qrToken!,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue,
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
+            )
+                : qrExpirado
+                ? const Text('QR expirado. Ya se asignaron faltas.')
+                : const Text('No se ha generado ningún QR'),
+            ElevatedButton(
+              onPressed: _generarNuevoQR,
+              child: const Text('Generar QR'),
+            ),
+          ],
+        ),
       ),
     );
   }
