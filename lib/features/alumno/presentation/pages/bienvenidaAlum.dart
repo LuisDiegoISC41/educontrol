@@ -75,7 +75,8 @@ class _BienvenidaAluState extends State<BienvenidaAlu> {
       final response = await Supabase.instance.client
           .from('alumno_grupo')
           .select('fecha_ingreso, grupo(nombre)')
-          .eq('id_alumno', idAlumno!);
+          .eq('id_alumno', idAlumno!)
+          .order('fecha_ingreso',ascending: false);
 
       print('Respuesta de clases: $response');
 

@@ -35,6 +35,7 @@ class _WelcomePageState extends State<WelcomePage> {
       setState(() {
         grupos = data.map((g) => GrupoModel.fromMap(g)).toList();
         isLoading = false;
+
       });
     } catch (e) {
       setState(() => isLoading = false);
