@@ -19,14 +19,17 @@ class AsistenciasScreen extends StatefulWidget {
 }
 
 class _AsistenciasScreenState extends State<AsistenciasScreen> {
-  late Map<DateTime, String> estados; // Estado por fecha
+  late Map<DateTime, Map<String, dynamic>> asistenciasMap; // Estado + fechaHora
   DateTime _fechaSeleccionada = DateTime.now();
   bool _cargando = true;
+
+  // Auxiliar para ignorar horas, minutos y segundos en un DateTime
+  DateTime _soloFecha(DateTime dt) => DateTime(dt.year, dt.month, dt.day);
 
   @override
   void initState() {
     super.initState();
-    estados = {};
+    asistenciasMap = {};
     cargarAsistencias();
   }
 
@@ -35,14 +38,12 @@ class _AsistenciasScreenState extends State<AsistenciasScreen> {
     try {
       final supabase = Supabase.instance.client;
 
-      // Trae asistencias con sesion_clase incluido
       final List<dynamic> response = await supabase
           .from('asistencia')
-          .select('id_asistencia, estado, fecha, id_alumno, id_sesion, sesion_clase(id_grupo)')
+          .select('id_asistencia, estado, fecha, fecha_hora, id_alumno, id_sesion, sesion_clase(id_grupo)')
           .eq('id_alumno', widget.idAlumno)
-          .order('fecha', ascending: true);
+          .order('fecha_hora', ascending: true);
 
-      // Filtra localmente por id_grupo (Supabase no permite filtrar en relaciones anidadas)
       final filtradoPorGrupo = response.where((asistencia) {
         final sesion = asistencia['sesion_clase'];
         if (sesion == null) return false;
@@ -50,16 +51,19 @@ class _AsistenciasScreenState extends State<AsistenciasScreen> {
       }).toList();
 
       setState(() {
-        estados = {
+        asistenciasMap = {
           for (var asistencia in filtradoPorGrupo)
-            DateTime.parse(asistencia['fecha']).toLocal(): asistencia['estado']
+            _soloFecha(DateTime.parse(asistencia['fecha']).toLocal()): {
+              'estado': asistencia['estado'],
+              'fechaHora': DateTime.parse(asistencia['fecha_hora']).toLocal(),
+            }
         };
         _cargando = false;
       });
     } catch (e) {
       print("Error al cargar asistencias: $e");
       setState(() {
-        estados = {};
+        asistenciasMap = {};
         _cargando = false;
       });
     }
@@ -77,6 +81,46 @@ class _AsistenciasScreenState extends State<AsistenciasScreen> {
       default:
         return Colors.grey;
     }
+  }
+
+  /// Muestra diálogo con hora de asistencia
+  void _mostrarHoraAsistencia(DateTime fecha) {
+    final asistencia = asistenciasMap[_soloFecha(fecha)];
+    if (asistencia == null) {
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('Sin asistencia'),
+          content: Text('No hay registro de asistencia para el día ${fecha.day}/${fecha.month}/${fecha.year}.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cerrar'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    final hora = asistencia['fechaHora'] as DateTime;
+
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Hora de asistencia'),
+        content: Text(
+          'Estado: ${asistencia['estado']}\nHora registrada: '
+          '${hora.hour.toString().padLeft(2, '0')}:${hora.minute.toString().padLeft(2, '0')}',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cerrar'),
+          )
+        ],
+      ),
+    );
   }
 
   @override
@@ -129,25 +173,26 @@ class _AsistenciasScreenState extends State<AsistenciasScreen> {
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: TableCalendar(
-                          firstDay: DateTime.utc(2025, 1, 1),
-                          lastDay: DateTime.utc(2025, 12, 31),
+                          firstDay: DateTime.utc(2000, 1, 1),
+                          lastDay: DateTime.utc(2100, 12, 31),
                           focusedDay: _fechaSeleccionada,
                           selectedDayPredicate: (day) => isSameDay(day, _fechaSeleccionada),
                           onDaySelected: (selectedDay, focusedDay) {
                             setState(() {
                               _fechaSeleccionada = selectedDay;
                             });
+                            _mostrarHoraAsistencia(selectedDay);
                           },
-                          headerStyle: HeaderStyle(
-                            titleTextStyle: const TextStyle(
+                          headerStyle: const HeaderStyle(
+                            titleTextStyle: TextStyle(
                               color: Colors.white,
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
                             ),
                             formatButtonVisible: false,
-                            leftChevronIcon: const Icon(Icons.chevron_left, color: Colors.white),
-                            rightChevronIcon: const Icon(Icons.chevron_right, color: Colors.white),
-                            headerPadding: const EdgeInsets.symmetric(vertical: 8),
+                            leftChevronIcon: Icon(Icons.chevron_left, color: Colors.white),
+                            rightChevronIcon: Icon(Icons.chevron_right, color: Colors.white),
+                            headerPadding: EdgeInsets.symmetric(vertical: 8),
                           ),
                           calendarStyle: const CalendarStyle(
                             todayDecoration: BoxDecoration(
@@ -158,7 +203,7 @@ class _AsistenciasScreenState extends State<AsistenciasScreen> {
                           ),
                           calendarBuilders: CalendarBuilders(
                             defaultBuilder: (context, date, _) {
-                              final estado = estados[DateTime(date.year, date.month, date.day)];
+                              final estado = asistenciasMap[_soloFecha(date)]?['estado'];
                               return Container(
                                 margin: const EdgeInsets.all(6),
                                 decoration: BoxDecoration(
@@ -195,7 +240,7 @@ class _AsistenciasScreenState extends State<AsistenciasScreen> {
                         ),
                         child: const Text("Regresar"),
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),
