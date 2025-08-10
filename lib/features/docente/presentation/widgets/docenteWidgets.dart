@@ -5,21 +5,21 @@ import '../../../grupo/presentation/pages/ver_qr_grupo.dart';
 class SubjectCard extends StatelessWidget {
   final String title;
   final String code;
-  final String qrGrupo; // ID grupo en string
-  final int idDocente;
+  final String qrGrupo; // Recibirá solo el ID como string
+  final int idDocente; // Nuevo parámetro para idDocente
   final Color color;
   final String iconUrl;
-  final VoidCallback? onDelete; // Callback para eliminar
+  final VoidCallback? onDelete; // Callback para eliminar, opcional
 
   const SubjectCard({
     super.key,
     required this.title,
     required this.code,
     required this.qrGrupo,
-    required this.idDocente,
+    required this.idDocente,  // Nuevo parámetro requerido
     required this.color,
     required this.iconUrl,
-    this.onDelete,
+    this.onDelete, // opcional
   });
 
   int? _obtenerIdGrupo(String qr) {
@@ -36,28 +36,40 @@ class SubjectCard extends StatelessWidget {
       ),
       padding: const EdgeInsets.all(15),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Texto y botones expandido
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(color: Colors.white, fontSize: 20)),
-                Text(code, style: const TextStyle(color: Colors.white70)),
+                Text(
+                  title,
+                  style: const TextStyle(color: Colors.white, fontSize: 20),
+                ),
+                Text(
+                  code,
+                  style: const TextStyle(color: Colors.white70),
+                ),
                 const SizedBox(height: 10),
                 Row(
                   children: [
                     ElevatedButton(
                       onPressed: () {
                         final id = _obtenerIdGrupo(qrGrupo);
+
                         if (id == null || id <= 0) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text("Error: No se pudo obtener el ID del grupo")),
                           );
                           return;
                         }
+
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => VerQRGrupoScreen(idGrupo: id)),
+                          MaterialPageRoute(
+                            builder: (_) => VerQRGrupoScreen(idGrupo: id),
+                          ),
                         );
                       },
                       style: ElevatedButton.styleFrom(
@@ -74,7 +86,7 @@ class SubjectCard extends StatelessWidget {
                           MaterialPageRoute(
                             builder: (context) => AttendanceScreen(
                               grupo: title,
-                              idDocente: idDocente,
+                              idDocente: idDocente,  // PASAR idDocente aquí
                             ),
                           ),
                         );
@@ -85,22 +97,31 @@ class SubjectCard extends StatelessWidget {
                       ),
                       child: const Text("Listas"),
                     ),
-                    const SizedBox(width: 10),
-                    if (onDelete != null)
-                      ElevatedButton(
-                        onPressed: onDelete,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          foregroundColor: Colors.white,
-                        ),
-                        child: const Text("Eliminar"),
-                      ),
                   ],
                 ),
               ],
             ),
           ),
-          Image.network(iconUrl, height: 60, width: 60),
+
+          // Imagen a la derecha
+          Image.network(
+            iconUrl,
+            height: 60,
+            width: 60,
+          ),
+
+          // Icono eliminar, solo si onDelete está definido
+          if (onDelete != null) ...[
+            const SizedBox(width: 8),
+            GestureDetector(
+              onTap: onDelete,
+              child: const Icon(
+                Icons.delete_outline,
+                color: Colors.redAccent,
+                size: 28,
+              ),
+            ),
+          ],
         ],
       ),
     );
