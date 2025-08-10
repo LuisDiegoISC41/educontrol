@@ -5,19 +5,21 @@ import '../../../grupo/presentation/pages/ver_qr_grupo.dart';
 class SubjectCard extends StatelessWidget {
   final String title;
   final String code;
-  final String qrGrupo; // Recibirá solo el ID como string
-  final int idDocente; // Nuevo parámetro para idDocente
+  final String qrGrupo; // ID grupo en string
+  final int idDocente;
   final Color color;
   final String iconUrl;
+  final VoidCallback? onDelete; // Callback para eliminar
 
   const SubjectCard({
     super.key,
     required this.title,
     required this.code,
     required this.qrGrupo,
-    required this.idDocente,  // Nuevo parámetro requerido
+    required this.idDocente,
     required this.color,
     required this.iconUrl,
+    this.onDelete,
   });
 
   int? _obtenerIdGrupo(String qr) {
@@ -35,38 +37,27 @@ class SubjectCard extends StatelessWidget {
       padding: const EdgeInsets.all(15),
       child: Row(
         children: [
-          // Texto
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: const TextStyle(color: Colors.white, fontSize: 20),
-                ),
-                Text(
-                  code,
-                  style: const TextStyle(color: Colors.white70),
-                ),
+                Text(title, style: const TextStyle(color: Colors.white, fontSize: 20)),
+                Text(code, style: const TextStyle(color: Colors.white70)),
                 const SizedBox(height: 10),
                 Row(
                   children: [
                     ElevatedButton(
                       onPressed: () {
                         final id = _obtenerIdGrupo(qrGrupo);
-
                         if (id == null || id <= 0) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text("Error: No se pudo obtener el ID del grupo")),
                           );
                           return;
                         }
-
                         Navigator.push(
                           context,
-                          MaterialPageRoute(
-                            builder: (_) => VerQRGrupoScreen(idGrupo: id),
-                          ),
+                          MaterialPageRoute(builder: (_) => VerQRGrupoScreen(idGrupo: id)),
                         );
                       },
                       style: ElevatedButton.styleFrom(
@@ -83,7 +74,7 @@ class SubjectCard extends StatelessWidget {
                           MaterialPageRoute(
                             builder: (context) => AttendanceScreen(
                               grupo: title,
-                              idDocente: idDocente,  // PASAR idDocente aquí
+                              idDocente: idDocente,
                             ),
                           ),
                         );
@@ -94,16 +85,22 @@ class SubjectCard extends StatelessWidget {
                       ),
                       child: const Text("Listas"),
                     ),
+                    const SizedBox(width: 10),
+                    if (onDelete != null)
+                      ElevatedButton(
+                        onPressed: onDelete,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: const Text("Eliminar"),
+                      ),
                   ],
                 ),
               ],
             ),
           ),
-          Image.network(
-            iconUrl,
-            height: 60,
-            width: 60,
-          ),
+          Image.network(iconUrl, height: 60, width: 60),
         ],
       ),
     );

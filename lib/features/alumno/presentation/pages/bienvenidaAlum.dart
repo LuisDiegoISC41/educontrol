@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../asistencia/EscanearQrAsistencia.dart';
 import '../../../asistencia/asistencia.dart';
 import 'qrScanner.dart'; // Pantalla para registrar a un grupo
-import '../../../asistencia/qrAsistencia.dart'; // Nueva pantalla para registrar asistencia
+ // Nueva pantalla para registrar asistencia
 import '../widgets/alumnoWidgets.dart';
 
 class BienvenidaAlu extends StatefulWidget {
@@ -74,7 +75,8 @@ class _BienvenidaAluState extends State<BienvenidaAlu> {
       final response = await Supabase.instance.client
           .from('alumno_grupo')
           .select('fecha_ingreso, grupo(nombre)')
-          .eq('id_alumno', idAlumno!);
+          .eq('id_alumno', idAlumno!)
+          .order('fecha_ingreso',ascending: false);
 
       print('Respuesta de clases: $response');
 
@@ -183,6 +185,7 @@ class _BienvenidaAluState extends State<BienvenidaAlu> {
                                           builder: (context) =>
                                               AsistenciasScreen(
                                             materia: subject['name'],
+                                            idAlumno: idAlumno!, 
                                           ),
                                         ),
                                       );
@@ -221,8 +224,7 @@ class _BienvenidaAluState extends State<BienvenidaAlu> {
                         await Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) =>
-                                EscanearQRScreen(idAlumno: idAlumno!),
+                            builder: (context) => EscanearQRScreen(idAlumno: idAlumno!),
                           ),
                         );
                         await _cargarClases();
@@ -236,8 +238,8 @@ class _BienvenidaAluState extends State<BienvenidaAlu> {
                         await Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) =>
-                                QrAsistenciaScreen(idAlumno: idAlumno!),
+
+                            builder: (context) => EscanearQrAsistencia(idAlumno: idAlumno!),
                           ),
                         );
                       },

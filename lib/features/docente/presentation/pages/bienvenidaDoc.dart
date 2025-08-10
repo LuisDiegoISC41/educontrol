@@ -19,11 +19,12 @@ class _WelcomePageState extends State<WelcomePage> {
   bool isLoading = true;
 
   late final GetGruposByDocente getGruposByDocente;
+  late final DocenteRepositoryImpl repo;
 
   @override
   void initState() {
     super.initState();
-    final repo = DocenteRepositoryImpl(DocenteRemoteDataSource());
+    repo = DocenteRepositoryImpl(DocenteRemoteDataSource());
     getGruposByDocente = GetGruposByDocente(repo);
     _cargarGrupos();
   }
@@ -44,6 +45,48 @@ class _WelcomePageState extends State<WelcomePage> {
     }
   }
 
+  Future<void> _eliminarGrupo(int idGrupo) async {
+    setState(() => isLoading = true);
+
+    try {
+      await repo.eliminarGrupo(idGrupo);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Grupo eliminado correctamente.')),
+      );
+      await _cargarGrupos();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error eliminando grupo: $e')),
+      );
+    } finally {
+      setState(() => isLoading = false);
+    }
+  }
+
+
+  void _confirmarEliminar(int idGrupo) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirmar eliminación'),
+        content: const Text('¿Estás seguro de eliminar este grupo? Esta acción es irreversible.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _eliminarGrupo(idGrupo);
+            },
+            child: const Text('Eliminar', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _agregarGrupo() async {
     final nuevoGrupo = await Navigator.push(
       context,
@@ -52,7 +95,6 @@ class _WelcomePageState extends State<WelcomePage> {
       ),
     );
     if (nuevoGrupo != null && nuevoGrupo is GrupoModel) {
-      // Después de insertar, recargar desde la BD
       await _cargarGrupos();
     }
   }
@@ -72,17 +114,11 @@ class _WelcomePageState extends State<WelcomePage> {
                 children: [
                   const Text(
                     '¡Bienvenido!',
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+                    style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white),
                   ),
                   const CircleAvatar(
                     radius: 25,
-                    backgroundImage: NetworkImage(
-                      'https://i.imgur.com/DBvYQpY.png',
-                    ),
+                    backgroundImage: NetworkImage('https://i.imgur.com/DBvYQpY.png'),
                   ),
                 ],
               ),
@@ -91,9 +127,7 @@ class _WelcomePageState extends State<WelcomePage> {
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     padding: const EdgeInsets.all(12),
                   ),
                   onPressed: _agregarGrupo,
@@ -105,10 +139,7 @@ class _WelcomePageState extends State<WelcomePage> {
                         width: 150,
                       ),
                       const SizedBox(height: 10),
-                      const Text(
-                        'Generar Grupo',
-                        style: TextStyle(color: Colors.black, fontSize: 16),
-                      ),
+                      const Text('Generar Grupo', style: TextStyle(color: Colors.black, fontSize: 16)),
                     ],
                   ),
                 ),
@@ -136,6 +167,16 @@ class _WelcomePageState extends State<WelcomePage> {
                                     idDocente: widget.idDocente,
                                     color: const Color(0xFF2D0C3F),
                                     iconUrl: 'https://img.icons8.com/color/96/conference-call.png',
+                                    onDelete: () {
+                                      if (grupo.idGrupo != null) {
+                                        _confirmarEliminar(grupo.idGrupo!);  // Aquí el ! indica que garantizas que no es nulo
+                                      } else {
+                                        // Maneja el caso cuando sea null si es necesario
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text('Error: ID del grupo es nulo')),
+                                        );
+                                      }
+                                    },
                                   ),
                                 );
                               }).toList(),

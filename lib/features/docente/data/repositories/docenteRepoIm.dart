@@ -1,3 +1,4 @@
+import 'package:educontrol/core/database/appBD.dart';
 import '../../domain/repositories/docenteRepo.dart';
 import '../datasources/docenteData.dart';
 
@@ -10,4 +11,45 @@ class DocenteRepositoryImpl implements DocenteRepository {
   Future<List<Map<String, dynamic>>> getGruposByDocente(int idDocente) async {
     return await remoteDataSource.fetchGrupos(idDocente);
   }
+
+  Future<bool> _existeGrupo(int idGrupo) async {
+    final grupos = await appBD.client
+        .from('grupo')
+        .select()
+        .eq('id_grupo', idGrupo);
+
+    return grupos != null && (grupos as List).isNotEmpty;
+  }
+
+ 
+  Future<String> eliminarGrupo(int idGrupo) async {
+    print('Intentando eliminar grupo con id: $idGrupo'); // <-- Aquí imprimes el id
+
+    // Verifica existencia
+    final grupos = await appBD.client
+        .from('grupo')
+        .select()
+        .eq('id_grupo', idGrupo);
+
+    print('Respuesta al verificar existencia: $grupos');  // <-- Imprime respuesta de existencia
+
+    if (grupos == null || (grupos is List && grupos.isEmpty)) {
+      return 'El grupo con id $idGrupo no existe.';
+    }
+
+    // Intentar eliminar
+    final response = await appBD.client
+        .from('grupo')
+        .delete()
+        .eq('id_grupo', idGrupo);
+
+    print('Respuesta al eliminar: $response');  // <-- Imprime respuesta al eliminar
+
+    if (response == null || (response is List && response.isEmpty)) {
+      return 'No se eliminó ningún grupo con id $idGrupo';
+    }
+
+    return 'Grupo eliminado correctamente.';
+  }
+
 }

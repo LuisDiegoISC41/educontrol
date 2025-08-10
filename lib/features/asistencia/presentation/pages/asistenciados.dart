@@ -1,5 +1,3 @@
-// AttendanceScreen.dart
-
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -87,7 +85,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       if (grupoRes == null) throw 'Grupo no encontrado';
 
       final idGrupo = grupoRes['id_grupo'];
-      final ahora = DateTime.now(); // <-- Aquí sin .toUtc()
+      final ahora = DateTime.now().toUtc(); // UTC aquí
 
       // Consultar última sesión creada para ese grupo
       final sesiones = await supabase
@@ -101,7 +99,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
       if (sesiones.isNotEmpty) {
         final sesion = sesiones.first;
-        final fechaSesion = DateTime.parse(sesion['fecha']); // sin toUtc()
+        final fechaSesion = DateTime.parse(sesion['fecha']).toUtc(); // UTC aquí
 
         final diferencia = ahora.difference(fechaSesion);
         if (diferencia.inMinutes < 10) {
@@ -120,7 +118,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
         await supabase.from('sesion_clase').insert({
           'id_grupo': idGrupo,
-          'fecha': ahora.toIso8601String(),
+          'fecha': ahora.toIso8601String(), // UTC al guardar
           'qr_token': qrToken,
           'creada_por': widget.idDocente,
         });
@@ -178,13 +176,13 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       if (grupoRes == null) throw 'Grupo no encontrado';
 
       final idGrupo = grupoRes['id_grupo'];
-      final ahora = DateTime.now(); // <-- Aquí sin .toUtc()
+      final ahora = DateTime.now().toUtc(); // UTC aquí
 
       // Crear nueva sesión manual si no existe
       final qrToken = '${idGrupo}_${ahora.millisecondsSinceEpoch}';
       final sesion = await supabase.from('sesion_clase').insert({
         'id_grupo': idGrupo,
-        'fecha': ahora.toIso8601String(),
+        'fecha': ahora.toIso8601String(), // UTC al guardar
         'qr_token': qrToken,
         'creada_por': widget.idDocente,
       }).select('id_sesion').single();
@@ -197,7 +195,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           await supabase.from('asistencia').insert({
             'estado': 'Asistencia',
             'fecha': ahora.toIso8601String().substring(0, 10),
-            'fecha_hora': ahora.toIso8601String(),
+            'fecha_hora': ahora.toIso8601String(), // UTC
             'id_alumno': alumnos[i]['id_alumno'],
             'id_sesion': idSesion,
           });
@@ -294,7 +292,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => AsistenciasScreen(materia: alumnos[index]['nombre']),
+                                  builder: (_) => AsistenciasScreen(
+                                    materia: alumnos[index]['nombre'],
+                                    idAlumno: alumnos[index]['id_alumno'], // <-- ahora incluido
+                                  ),
                                 ),
                               );
                             },
