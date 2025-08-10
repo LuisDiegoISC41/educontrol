@@ -3,7 +3,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../asistencia/EscanearQrAsistencia.dart';
 import '../../../asistencia/asistencia.dart';
 import 'qrScanner.dart'; // Pantalla para registrar a un grupo
- // Nueva pantalla para registrar asistencia
 import '../widgets/alumnoWidgets.dart';
 
 class BienvenidaAlu extends StatefulWidget {
@@ -74,15 +73,16 @@ class _BienvenidaAluState extends State<BienvenidaAlu> {
     try {
       final response = await Supabase.instance.client
           .from('alumno_grupo')
-          .select('fecha_ingreso, grupo(nombre)')
+          .select('fecha_ingreso, grupo(id_grupo, nombre)')
           .eq('id_alumno', idAlumno!)
-          .order('fecha_ingreso',ascending: false);
+          .order('fecha_ingreso', ascending: false);
 
       print('Respuesta de clases: $response');
 
       setState(() {
         subjects = (response as List)
             .map((e) => {
+                  'idGrupo': e['grupo']['id_grupo'],  // Aquí agregamos el idGrupo
                   'name': e['grupo']['nombre'] as String,
                   'date': e['fecha_ingreso'] != null
                       ? (e['fecha_ingreso'] as String).split('T').first
@@ -182,10 +182,10 @@ class _BienvenidaAluState extends State<BienvenidaAlu> {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) =>
-                                              AsistenciasScreen(
+                                          builder: (context) => AsistenciasScreen(
                                             materia: subject['name'],
-                                            idAlumno: idAlumno!, 
+                                            idAlumno: idAlumno!,
+                                            idGrupo: subject['idGrupo'], // Aquí se pasa el idGrupo
                                           ),
                                         ),
                                       );
@@ -224,7 +224,8 @@ class _BienvenidaAluState extends State<BienvenidaAlu> {
                         await Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => EscanearQRScreen(idAlumno: idAlumno!),
+                            builder: (context) =>
+                                EscanearQRScreen(idAlumno: idAlumno!),
                           ),
                         );
                         await _cargarClases();
@@ -238,8 +239,8 @@ class _BienvenidaAluState extends State<BienvenidaAlu> {
                         await Navigator.push(
                           context,
                           MaterialPageRoute(
-
-                            builder: (context) => EscanearQrAsistencia(idAlumno: idAlumno!),
+                            builder: (context) =>
+                                EscanearQrAsistencia(idAlumno: idAlumno!),
                           ),
                         );
                       },

@@ -22,8 +22,8 @@ class _EscanearQrAsistenciaState extends State<EscanearQrAsistencia> {
     final supabase = Supabase.instance.client;
 
     try {
-      // Usar hora actual en UTC
-      final now = DateTime.now().toUtc();
+      // Usar hora local (no UTC)
+      final now = DateTime.now();
 
       // Buscar sesiones válidas con ese token
       final sesiones = await supabase
@@ -36,13 +36,13 @@ class _EscanearQrAsistenciaState extends State<EscanearQrAsistencia> {
       }
 
       final session = sesiones.first;
-      final sessionDate = DateTime.parse(session['fecha']).toUtc();
+      final sessionDate = DateTime.parse(session['fecha']); // hora local aquí
       final segundos = now.difference(sessionDate).inSeconds;
 
       final String idSesion = session['id_sesion'];
       final int idGrupo = session['id_grupo'];
 
-      // Guardar fecha + hora actual en ISO 8601 UTC completo
+      // Guardar fecha + hora actual en ISO 8601 local
       final String fechaHoraStr = now.toIso8601String();
 
       // Verificar si el alumno pertenece al grupo
@@ -87,10 +87,11 @@ class _EscanearQrAsistenciaState extends State<EscanearQrAsistencia> {
         );
       }
 
-      // Registrar asistencia con fecha y hora actual (UTC)
+      // Registrar asistencia con fecha y hora actual (local)
       await supabase.from('asistencia').insert({
         'estado': estado,
-        'fecha': fechaHoraStr,
+        'fecha': fechaHoraStr.substring(0, 10), // solo fecha YYYY-MM-DD
+        'fecha_hora': fechaHoraStr, // fecha + hora local
         'id_alumno': widget.idAlumno,
         'id_sesion': idSesion,
       });

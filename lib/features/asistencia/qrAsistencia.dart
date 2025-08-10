@@ -29,7 +29,7 @@ class _QRAsistenciaScreenState extends State<QRAsistenciaScreen> {
 
   // Función para verificar si ya hay una sesión activa hoy
   Future<void> _verificarSesionDelDia() async {
-    final now = DateTime.now().toUtc();
+    final now = DateTime.now();
     final hoy = DateTime(now.year, now.month, now.day);
 
     final response = await Supabase.instance.client
@@ -42,7 +42,7 @@ class _QRAsistenciaScreenState extends State<QRAsistenciaScreen> {
 
     if (response.isNotEmpty) {
       final sesion = response.first;
-      final DateTime fechaSesion = DateTime.parse(sesion['fecha']).toUtc();
+      final DateTime fechaSesion = DateTime.parse(sesion['fecha']);
       final Duration diferencia = now.difference(fechaSesion);
 
       if (diferencia.inMinutes < 3) {
@@ -92,15 +92,15 @@ class _QRAsistenciaScreenState extends State<QRAsistenciaScreen> {
           'id_sesion': idSesion,
           'id_alumno': alumno['id_alumno'],
           'estado': 'Falta',
-          'fecha': hoy.toIso8601String().substring(0, 10),
-          'fecha_hora': now.toIso8601String(),
+          'fecha': hoy.toIso8601String().substring(0, 10), // solo fecha
+          'fecha_hora': now.toIso8601String(), // fecha + hora local
         });
       }
     }
   }
 
   Future<void> _generarNuevoQR() async {
-    final now = DateTime.now().toUtc();
+    final now = DateTime.now();
     final hoy = DateTime(now.year, now.month, now.day);
 
     // Verifica si ya existe una sesión hoy
@@ -123,7 +123,7 @@ class _QRAsistenciaScreenState extends State<QRAsistenciaScreen> {
         .from('sesionclase')
         .insert({
           'id_grupo': widget.idGrupo,
-          'fecha': now.toIso8601String(),
+          'fecha': now.toIso8601String(), // fecha + hora local
           'qr_token': nuevoQr,
           'creada_por': widget.idDocente,
         })

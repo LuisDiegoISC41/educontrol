@@ -5,8 +5,14 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class AsistenciasScreen extends StatefulWidget {
   final String materia; // Nombre de la materia
   final int idAlumno;   // ID del alumno
+  final int idGrupo;    // ID del grupo
 
-  const AsistenciasScreen({super.key, required this.materia, required this.idAlumno});
+  const AsistenciasScreen({
+    super.key,
+    required this.materia,
+    required this.idAlumno,
+    required this.idGrupo,
+  });
 
   @override
   State<AsistenciasScreen> createState() => _AsistenciasScreenState();
@@ -24,37 +30,38 @@ class _AsistenciasScreenState extends State<AsistenciasScreen> {
     cargarAsistencias();
   }
 
-  /// Consulta a la base de datos
+  /// Consulta a la base de datos filtrando por alumno y grupo
   Future<void> cargarAsistencias() async {
     try {
       final supabase = Supabase.instance.client;
 
-      // Consulta básica: obtiene fecha y estado del alumno
-      final response = await supabase
+      // Trae asistencias con sesion_clase incluido
+      final List<dynamic> response = await supabase
           .from('asistencia')
-          .select('fecha, estado')
+          .select('id_asistencia, estado, fecha, id_alumno, id_sesion, sesion_clase(id_grupo)')
           .eq('id_alumno', widget.idAlumno)
           .order('fecha', ascending: true);
 
-      if (response.isNotEmpty) {
-        setState(() {
-          estados = {
-            for (var asistencia in response)
-              DateTime.parse(asistencia['fecha']).toLocal(): asistencia['estado']
-          };
-          _cargando = false;
-        });
-      } else {
-        setState(() {
-          estados = {};
-          _cargando = false;
-        });
-      }
-    } catch (e) {
+      // Filtra localmente por id_grupo (Supabase no permite filtrar en relaciones anidadas)
+      final filtradoPorGrupo = response.where((asistencia) {
+        final sesion = asistencia['sesion_clase'];
+        if (sesion == null) return false;
+        return sesion['id_grupo'] == widget.idGrupo;
+      }).toList();
+
       setState(() {
+        estados = {
+          for (var asistencia in filtradoPorGrupo)
+            DateTime.parse(asistencia['fecha']).toLocal(): asistencia['estado']
+        };
         _cargando = false;
       });
+    } catch (e) {
       print("Error al cargar asistencias: $e");
+      setState(() {
+        estados = {};
+        _cargando = false;
+      });
     }
   }
 
@@ -197,7 +204,6 @@ class _AsistenciasScreenState extends State<AsistenciasScreen> {
   }
 }
 
-/// Leyenda para los estados
 class _Legend extends StatelessWidget {
   final Color color;
   final String text;
