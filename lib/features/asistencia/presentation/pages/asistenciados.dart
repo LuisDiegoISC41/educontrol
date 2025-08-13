@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../asistencia.dart';
+import '../../todasAsistencias.dart'; // <-- AJUSTA la ruta si es necesario (y el nombre de la clase abajo)
 
 class AttendanceScreen extends StatefulWidget {
   final String grupo; // Para identificar el grupo por nombre
@@ -221,13 +222,35 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         backgroundColor: const Color(0xFF0A0C2A),
         title: Text('Asistencias - ${widget.grupo}'),
         actions: [
+          // 🔹 Nuevo botón de LISTA al lado del QR
+          IconButton(
+            icon: const Icon(Icons.list_alt, color: Colors.blueAccent),
+            tooltip: 'Ver todas las asistencias',
+            onPressed: () {
+              if (idGrupo == null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Aún no se ha cargado el grupo')),
+                );
+                return;
+              }
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => TodasAsistenciasPage(
+                    idDocente: widget.idDocente,
+                    qrGrupo: idGrupo!.toString(), // pasamos el idGrupo como String
+                  ),
+                ),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.qr_code, color: Colors.greenAccent),
             tooltip: 'Generar QR',
             onPressed: () async {
               await generarQRTemporal();
             },
-          )
+          ),
         ],
       ),
       body: SafeArea(
