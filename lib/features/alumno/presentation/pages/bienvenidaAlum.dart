@@ -4,6 +4,7 @@ import '../../../asistencia/EscanearQrAsistencia.dart';
 import '../../../asistencia/asistencia.dart';
 import 'qrScanner.dart'; // Pantalla para registrar a un grupo
 import '../widgets/alumnoWidgets.dart';
+import '../../../../login.dart'; // Asegúrate de ajustar la ruta de tu LoginPage
 
 class BienvenidaAlu extends StatefulWidget {
   final String nombreCompleto;
@@ -82,7 +83,7 @@ class _BienvenidaAluState extends State<BienvenidaAlu> {
       setState(() {
         subjects = (response as List)
             .map((e) => {
-                  'idGrupo': e['grupo']['id_grupo'],  // Aquí agregamos el idGrupo
+                  'idGrupo': e['grupo']['id_grupo'], // idGrupo
                   'name': e['grupo']['nombre'] as String,
                   'date': e['fecha_ingreso'] != null
                       ? (e['fecha_ingreso'] as String).split('T').first
@@ -107,37 +108,60 @@ class _BienvenidaAluState extends State<BienvenidaAlu> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF210A4E),
+
+      // Drawer de menú lateral
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            const DrawerHeader(
+              decoration: BoxDecoration(
+                color: Color(0xFF8D22B1),
+              ),
+              child: Text(
+                'Alumno',
+                style: TextStyle(color: Colors.white, fontSize: 24),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.logout, color: Colors.red),
+              title: const Text('Cerrar sesión'),
+              onTap: () async {
+                await Supabase.instance.client.auth.signOut();
+                if (context.mounted) {
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(
+                      builder: (context) => const LoginPage(tipo: ""),
+                    ),
+                    (route) => false,
+                  );
+                }
+              },
+            ),
+          ],
+        ),
+      ),
+
+      // AppBar con botón para abrir el Drawer
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF160537),
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu, color: Colors.white),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
+        ),
+        elevation: 0,
+      ),
+
       body: cargando
           ? const Center(child: CircularProgressIndicator())
           : SafeArea(
               child: Column(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    color: const Color(0xFF160537),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Container(
-                          width: 45,
-                          height: 45,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(22.5),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.3),
-                              width: 2,
-                            ),
-                          ),
-                          child: const Icon(Icons.person,
-                              color: Colors.white, size: 24),
-                        ),
-                      ],
-                    ),
-                  ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 20),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -185,7 +209,7 @@ class _BienvenidaAluState extends State<BienvenidaAlu> {
                                           builder: (context) => AsistenciasScreen(
                                             materia: subject['name'],
                                             idAlumno: idAlumno!,
-                                            idGrupo: subject['idGrupo'], // Aquí se pasa el idGrupo
+                                            idGrupo: subject['idGrupo'],
                                           ),
                                         ),
                                       );
@@ -199,6 +223,7 @@ class _BienvenidaAluState extends State<BienvenidaAlu> {
                 ],
               ),
             ),
+
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           if (idAlumno == null) {

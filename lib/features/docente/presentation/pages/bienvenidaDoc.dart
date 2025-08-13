@@ -5,6 +5,8 @@ import '../../domain/usecases/docenteInfo.dart';
 import '../../data/datasources/docenteData.dart';
 import '../../data/repositories/docenteRepoIm.dart';
 import '../widgets/docenteWidgets.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../login.dart';
 
 class WelcomePage extends StatefulWidget {
   final int idDocente;
@@ -103,6 +105,49 @@ class _WelcomePageState extends State<WelcomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF080E2A),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            const DrawerHeader(
+              decoration: BoxDecoration(
+                color: Color(0xFF2D0C3F),
+              ),
+              child: Text(
+                'Docente',
+                style: TextStyle(color: Colors.white, fontSize: 24),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.logout, color: Colors.red),
+              title: const Text('Cerrar sesión'),
+              onTap: () async {
+                await Supabase.instance.client.auth.signOut();
+                if (context.mounted) {
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(
+                      builder: (context) => LoginPage(tipo: ""), // Cambia null por el valor que uses
+                    ),
+                        (route) => false,
+                  );
+                }
+              },
+            ),
+
+          ],
+        ),
+      ),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF2D0C3F),
+        leading: Builder(
+          builder: (context) => IconButton(
+             icon: const Icon(Icons.menu, color: Colors.white),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
+        ),
+        elevation: 0,
+      ),
+
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
