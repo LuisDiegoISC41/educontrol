@@ -5,21 +5,21 @@ import '../../../grupo/presentation/pages/ver_qr_grupo.dart';
 class SubjectCard extends StatelessWidget {
   final String title;
   final String code;
-  final String qrGrupo; // Recibirá solo el ID como string
-  final int idDocente; // Nuevo parámetro para idDocente
+  final String qrGrupo; 
+  final int idDocente; 
   final Color color;
-  final String iconUrl;
-  final VoidCallback? onDelete; // Callback para eliminar, opcional
+  final String? iconUrl; 
+  final VoidCallback? onDelete; 
 
   const SubjectCard({
     super.key,
     required this.title,
     required this.code,
     required this.qrGrupo,
-    required this.idDocente,  // Nuevo parámetro requerido
+    required this.idDocente,
     required this.color,
-    required this.iconUrl,
-    this.onDelete, // opcional
+    this.iconUrl, // 🔹 Ya no es required
+    this.onDelete,
   });
 
   int? _obtenerIdGrupo(String qr) {
@@ -86,7 +86,7 @@ class SubjectCard extends StatelessWidget {
                           MaterialPageRoute(
                             builder: (context) => AttendanceScreen(
                               grupo: title,
-                              idDocente: idDocente,  // PASAR idDocente aquí
+                              idDocente: idDocente,
                             ),
                           ),
                         );
@@ -103,12 +103,13 @@ class SubjectCard extends StatelessWidget {
             ),
           ),
 
-          // Imagen a la derecha
-          Image.network(
-            iconUrl,
-            height: 60,
-            width: 60,
-          ),
+          // Imagen a la derecha solo si se proporciona
+          if (iconUrl != null && iconUrl!.isNotEmpty)
+            Image.network(
+              iconUrl!,
+              height: 60,
+              width: 60,
+            ),
 
           // Icono eliminar, solo si onDelete está definido
           if (onDelete != null) ...[

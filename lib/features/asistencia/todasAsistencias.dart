@@ -3,7 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 class TodasAsistenciasPage extends StatefulWidget {
   final int idDocente;
-  final String qrGrupo; // ID del grupo en texto
+  final String qrGrupo;
 
   const TodasAsistenciasPage({
     Key? key,
@@ -32,7 +32,8 @@ class _TodasAsistenciasPageState extends State<TodasAsistenciasPage> {
 
       final alumnosGrupo = await supabase
           .from('alumno_grupo')
-          .select('alumno(id_alumno, nombre, apellido_paterno, apellido_materno)')
+          .select(
+              'alumno(id_alumno, nombre, apellido_paterno, apellido_materno)')
           .eq('id_grupo', int.parse(widget.qrGrupo));
 
       List<Map<String, dynamic>> listaAlumnos = [];
@@ -48,7 +49,8 @@ class _TodasAsistenciasPageState extends State<TodasAsistenciasPage> {
           final asistenciasFiltradas = asistenciasAlumno
               .where((a) =>
                   a['sesion_clase'] != null &&
-                  a['sesion_clase']['id_grupo'] == int.parse(widget.qrGrupo))
+                  a['sesion_clase']['id_grupo'] ==
+                      int.parse(widget.qrGrupo))
               .toList();
 
           listaAlumnos.add({
@@ -95,19 +97,42 @@ class _TodasAsistenciasPageState extends State<TodasAsistenciasPage> {
 
   @override
   Widget build(BuildContext context) {
+    const backgroundColor = Color(0xFF080E2A);
+    const textColor = Colors.white;
+
     return Scaffold(
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        title: const Text("Todas las asistencias"),
-        backgroundColor: Colors.blue,
+        title: const Text(
+          "Todas las asistencias",
+          style: TextStyle(color: textColor),
+        ),
+        backgroundColor: backgroundColor,
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: textColor),
       ),
       body: loading
           ? const Center(child: CircularProgressIndicator())
           : asistencias.isEmpty
-              ? const Center(child: Text("No hay asistencias registradas"))
+              ? const Center(
+                  child: Text(
+                    "No hay asistencias registradas",
+                    style: TextStyle(color: textColor),
+                  ),
+                )
               : SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
-                  child: SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minWidth: MediaQuery.of(context).size.width,
+                    ),
                     child: DataTable(
+                      headingRowColor: MaterialStateColor.resolveWith(
+                          (states) => Colors.purpleAccent.withOpacity(0.2)),
+                      headingTextStyle: const TextStyle(
+                          color: textColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16),
                       columns: [
                         const DataColumn(label: Text("Alumno")),
                         ...fechas.map((f) => DataColumn(label: Text(f))),
@@ -117,9 +142,11 @@ class _TodasAsistenciasPageState extends State<TodasAsistenciasPage> {
                             "${alumno['nombre']} ${alumno['apellido_paterno']} ${alumno['apellido_materno']}";
                         return DataRow(
                           cells: [
-                            DataCell(Text(nombreCompleto)),
+                            DataCell(Text(nombreCompleto,
+                                style: const TextStyle(color: textColor))),
                             ...fechas.map((fecha) {
-                              final asistenciaDia = (alumno['asistencia'] as List)
+                              final asistenciaDia = (alumno['asistencia']
+                                      as List)
                                   .cast<Map<String, dynamic>>()
                                   .firstWhere(
                                       (a) => a['fecha'] == fecha,

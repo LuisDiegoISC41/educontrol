@@ -42,14 +42,13 @@ class _WelcomePageState extends State<WelcomePage> {
     } catch (e) {
       setState(() => isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al cargar grupo en bienvenida doc: $e')),
+        SnackBar(content: Text('Error al cargar grupos: $e')),
       );
     }
   }
 
   Future<void> _eliminarGrupo(int idGrupo) async {
     setState(() => isLoading = true);
-
     try {
       await repo.eliminarGrupo(idGrupo);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -65,13 +64,13 @@ class _WelcomePageState extends State<WelcomePage> {
     }
   }
 
-
   void _confirmarEliminar(int idGrupo) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Confirmar eliminación'),
-        content: const Text('¿Estás seguro de eliminar este grupo? Esta acción es irreversible.'),
+        content: const Text(
+            '¿Estás seguro de eliminar este grupo? Esta acción es irreversible.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -111,7 +110,7 @@ class _WelcomePageState extends State<WelcomePage> {
           children: [
             const DrawerHeader(
               decoration: BoxDecoration(
-                color: Color(0xFF2D0C3F),
+                color: Color(0xFF080E2A),
               ),
               child: Text(
                 'Docente',
@@ -119,64 +118,59 @@ class _WelcomePageState extends State<WelcomePage> {
               ),
             ),
             ListTile(
-              leading: const Icon(Icons.logout, color: Colors.red),
               title: const Text('Cerrar sesión'),
               onTap: () async {
                 await Supabase.instance.client.auth.signOut();
                 if (context.mounted) {
                   Navigator.of(context).pushAndRemoveUntil(
                     MaterialPageRoute(
-                      builder: (context) => LoginPage(tipo: ""), // Cambia null por el valor que uses
+                      builder: (context) => LoginPage(tipo: ""),
                     ),
-                        (route) => false,
+                    (route) => false,
                   );
                 }
               },
             ),
-
           ],
         ),
       ),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF2D0C3F),
+        backgroundColor: const Color(0xFF080E2A),
         leading: Builder(
           builder: (context) => IconButton(
-             icon: const Icon(Icons.menu, color: Colors.white),
+            icon: const Icon(Icons.menu, color: Colors.white),
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
         elevation: 0,
       ),
-
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    '¡Bienvenido!',
-                    style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white),
-                  ),
-                  const CircleAvatar(
-                    radius: 25,
-                    backgroundImage: NetworkImage('https://i.imgur.com/DBvYQpY.png'),
-                  ),
-                ],
+              const Center(
+                child: Text(
+                  '¡Bienvenido!',
+                  style: TextStyle(
+                      fontSize: 40,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white),
+                ),
               ),
               const SizedBox(height: 20),
               Center(
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    backgroundColor: const Color(0xFFFFFFFF),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                     padding: const EdgeInsets.all(12),
                   ),
                   onPressed: _agregarGrupo,
                   child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Image.network(
                         'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=Grupo123',
@@ -184,7 +178,8 @@ class _WelcomePageState extends State<WelcomePage> {
                         width: 150,
                       ),
                       const SizedBox(height: 10),
-                      const Text('Generar Grupo', style: TextStyle(color: Colors.black, fontSize: 16)),
+                      const Text('Generar Grupo',
+                          style: TextStyle(color: Colors.black, fontSize: 16)),
                     ],
                   ),
                 ),
@@ -204,24 +199,50 @@ class _WelcomePageState extends State<WelcomePage> {
                             child: Column(
                               children: grupos.map((grupo) {
                                 return Padding(
-                                  padding: const EdgeInsets.only(bottom: 20),
-                                  child: SubjectCard(
-                                    title: grupo.nombre,
-                                    qrGrupo: grupo.idGrupo.toString(),
-                                    code: grupo.grupo,
-                                    idDocente: widget.idDocente,
-                                    color: const Color(0xFF2D0C3F),
-                                    iconUrl: 'https://img.icons8.com/color/96/conference-call.png',
-                                    onDelete: () {
-                                      if (grupo.idGrupo != null) {
-                                        _confirmarEliminar(grupo.idGrupo!);  // Aquí el ! indica que garantizas que no es nulo
-                                      } else {
-                                        // Maneja el caso cuando sea null si es necesario
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(content: Text('Error: ID del grupo es nulo')),
-                                        );
-                                      }
-                                    },
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 10),
+                                  child: Stack(
+                                    children: [
+                                      // 👇 OJO: ya no pasamos iconUrl
+                                      SubjectCard(
+                                        title: grupo.nombre,
+                                        qrGrupo: grupo.idGrupo.toString(),
+                                        code: grupo.grupo,
+                                        idDocente: widget.idDocente,
+                                        color: const Color(0xFF2D0D5E),
+                                      ),
+                                      // Botón de eliminar arriba a la derecha
+                                      Positioned(
+                                        top: 8,
+                                        right: 8,
+                                        child: IconButton(
+                                          icon: const Icon(Icons.delete,
+                                              color: Colors.red),
+                                          onPressed: () {
+                                            if (grupo.idGrupo != null) {
+                                              _confirmarEliminar(grupo.idGrupo!);
+                                            } else {
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                const SnackBar(
+                                                    content: Text(
+                                                        'Error: ID del grupo es nulo')),
+                                              );
+                                            }
+                                          },
+                                        ),
+                                      ),
+                                      // Ícono de grupo abajo a la derecha
+                                      Positioned(
+                                        bottom: 12, // lo bajamos un poquito
+                                        right: 10,
+                                        child: Image.network(
+                                          'https://img.icons8.com/color/96/conference-call.png',
+                                          height: 80,
+                                          width: 80,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 );
                               }).toList(),

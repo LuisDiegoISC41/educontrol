@@ -23,7 +23,7 @@ class DocenteRepositoryImpl implements DocenteRepository {
 
  
   Future<String> eliminarGrupo(int idGrupo) async {
-    print('Intentando eliminar grupo con id: $idGrupo'); // <-- Aquí imprimes el id
+    print('Intentando eliminar grupo con id: $idGrupo'); 
 
     // Verifica existencia
     final grupos = await appBD.client
@@ -31,19 +31,19 @@ class DocenteRepositoryImpl implements DocenteRepository {
         .select()
         .eq('id_grupo', idGrupo);
 
-    print('Respuesta al verificar existencia: $grupos');  // <-- Imprime respuesta de existencia
+    print('Respuesta al verificar existencia: $grupos'); 
 
     if (grupos == null || (grupos is List && grupos.isEmpty)) {
       return 'El grupo con id $idGrupo no existe.';
     }
-
-    // Intentar eliminar
     final response = await appBD.client
         .from('grupo')
         .delete()
-        .eq('id_grupo', idGrupo);
+        .eq('id_grupo', idGrupo)
+        .order('idGrupo', ascending: false);
 
-    print('Respuesta al eliminar: $response');  // <-- Imprime respuesta al eliminar
+
+    print('Respuesta al eliminar: $response');  
 
     if (response == null || (response is List && response.isEmpty)) {
       return 'No se eliminó ningún grupo con id $idGrupo';

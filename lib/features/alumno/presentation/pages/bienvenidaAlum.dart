@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../asistencia/EscanearQrAsistencia.dart';
 import '../../../asistencia/asistencia.dart';
-import 'qrScanner.dart'; // Pantalla para registrar a un grupo
-import '../widgets/alumnoWidgets.dart';
-import '../../../../login.dart'; // Asegúrate de ajustar la ruta de tu LoginPage
+import 'qrScanner.dart';
+import '../../../../login.dart'; // Ajusta la ruta si es necesario
 
 class BienvenidaAlu extends StatefulWidget {
   final String nombreCompleto;
@@ -22,7 +21,7 @@ class BienvenidaAlu extends StatefulWidget {
 
 class _BienvenidaAluState extends State<BienvenidaAlu> {
   bool showScanner = false;
-  int? idAlumno; // ID cargado desde Supabase
+  int? idAlumno;
   bool cargando = true;
 
   List<Map<String, dynamic>> subjects = [];
@@ -45,10 +44,8 @@ class _BienvenidaAluState extends State<BienvenidaAlu> {
         setState(() {
           idAlumno = response['id_alumno'] as int;
         });
-        print('ID alumno encontrado: $idAlumno');
         await _cargarClases();
       } else {
-        print('No se encontró el alumno');
         setState(() {
           cargando = false;
         });
@@ -56,9 +53,7 @@ class _BienvenidaAluState extends State<BienvenidaAlu> {
           const SnackBar(content: Text('No se encontró el alumno')),
         );
       }
-    } catch (e, s) {
-      print('Error en _cargarIdAlumno: $e');
-      print(s);
+    } catch (e) {
       setState(() {
         cargando = false;
       });
@@ -78,12 +73,10 @@ class _BienvenidaAluState extends State<BienvenidaAlu> {
           .eq('id_alumno', idAlumno!)
           .order('fecha_ingreso', ascending: false);
 
-      print('Respuesta de clases: $response');
-
       setState(() {
         subjects = (response as List)
             .map((e) => {
-                  'idGrupo': e['grupo']['id_grupo'], // idGrupo
+                  'idGrupo': e['grupo']['id_grupo'],
                   'name': e['grupo']['nombre'] as String,
                   'date': e['fecha_ingreso'] != null
                       ? (e['fecha_ingreso'] as String).split('T').first
@@ -92,9 +85,7 @@ class _BienvenidaAluState extends State<BienvenidaAlu> {
             .toList();
         cargando = false;
       });
-    } catch (e, s) {
-      print('Error en _cargarClases: $e');
-      print(s);
+    } catch (e) {
       setState(() {
         cargando = false;
       });
@@ -107,18 +98,17 @@ class _BienvenidaAluState extends State<BienvenidaAlu> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF210A4E),
+      backgroundColor: const Color(0xFF080E2A),
 
-      // Drawer de menú lateral
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
-            const DrawerHeader(
+            DrawerHeader(
               decoration: BoxDecoration(
-                color: Color(0xFF8D22B1),
+                color: const Color(0xFF080E2A),
               ),
-              child: Text(
+              child: const Text(
                 'Alumno',
                 style: TextStyle(color: Colors.white, fontSize: 24),
               ),
@@ -142,9 +132,8 @@ class _BienvenidaAluState extends State<BienvenidaAlu> {
         ),
       ),
 
-      // AppBar con botón para abrir el Drawer
       appBar: AppBar(
-        backgroundColor: const Color(0xFF160537),
+        backgroundColor: const Color(0xFF080E2A),
         leading: Builder(
           builder: (context) => IconButton(
             icon: const Icon(Icons.menu, color: Colors.white),
@@ -159,11 +148,26 @@ class _BienvenidaAluState extends State<BienvenidaAlu> {
           : SafeArea(
               child: Column(
                 children: [
+                  // Encabezado
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    color: const Color(0xFF080E2A),
+                    child: const Center(
+                      child: Text(
+                        "¡Bienvenido!",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 40,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                  // Datos del alumno
                   Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 20),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(widget.nombreCompleto,
                             style: const TextStyle(
@@ -173,18 +177,17 @@ class _BienvenidaAluState extends State<BienvenidaAlu> {
                         const SizedBox(height: 8),
                         Text('Estudiante - ${widget.matricula}',
                             style: const TextStyle(
-                                color: Colors.white70,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w400)),
+                                color: Colors.white70, fontSize: 16)),
                       ],
                     ),
                   ),
+                  // Lista de materias
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: Container(
                         decoration: BoxDecoration(
-                          color: const Color(0xFF8D22B1),
+                          color: const Color(0xFF2D0D5E),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         padding: const EdgeInsets.all(16),
@@ -195,8 +198,13 @@ class _BienvenidaAluState extends State<BienvenidaAlu> {
                                   style: TextStyle(color: Colors.white70),
                                 ),
                               )
-                            : ListView.builder(
+                            : ListView.separated(
                                 itemCount: subjects.length,
+                                separatorBuilder: (context, index) => Divider(
+                                  color: const Color(0xFF69F0AE),
+                                  thickness: 2,
+                                  height: 24,
+                                ),
                                 itemBuilder: (context, index) {
                                   final subject = subjects[index];
                                   return SubjectCard(
@@ -276,9 +284,84 @@ class _BienvenidaAluState extends State<BienvenidaAlu> {
             },
           );
         },
-        backgroundColor: const Color(0xFFD946EF),
+        backgroundColor: const Color(0xFF69F0AE),
         elevation: 12,
         child: const Icon(Icons.qr_code_scanner, color: Colors.white, size: 28),
+      ),
+    );
+  }
+}
+
+class SubjectCard extends StatelessWidget {
+  final String name;
+  final String date;
+  final VoidCallback onTap;
+
+  const SubjectCard({
+    super.key,
+    required this.name,
+    required this.date,
+    required this.onTap,
+  });
+
+  final String imageUrl =
+      'https://img.icons8.com/color/96/000000/book--v1.png';
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFF2D0D5E),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  date,
+                  style: const TextStyle(color: Colors.white70, fontSize: 16),
+                ),
+              ],
+            ),
+            Image.network(
+              imageUrl,
+              width: 60,
+              height: 60,
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return const SizedBox(
+                  width: 60,
+                  height: 60,
+                  child: Center(
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                );
+              },
+              errorBuilder: (context, error, stackTrace) {
+                return const Icon(
+                  Icons.error,
+                  color: Colors.red,
+                  size: 40,
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

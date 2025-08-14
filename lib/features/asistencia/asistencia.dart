@@ -125,99 +125,88 @@ class _AsistenciasScreenState extends State<AsistenciasScreen> {
 
   @override
   Widget build(BuildContext context) {
+    const verde = Color(0xFF5FD89C);
+
     return Scaffold(
       backgroundColor: const Color(0xFF0B0C2A),
       body: SafeArea(
         child: _cargando
             ? const Center(
-                child: CircularProgressIndicator(color: Colors.purpleAccent),
+                child: CircularProgressIndicator(color: verde),
               )
             : Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start, // alineado a la izquierda
                   children: [
-                    // Título y avatar
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Asistencias',
-                          style: TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        CircleAvatar(
-                          radius: 24,
-                          backgroundColor: Colors.purpleAccent,
-                          child: const Icon(Icons.person, color: Colors.white),
-                        ),
-                      ],
+                    const Text(
+                      'Asistencias',
+                      style: TextStyle(
+                        fontSize: 35,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
                     const SizedBox(height: 10),
                     Text(
-                      widget.materia,
+                      widget.materia, // materia a la izquierda
                       style: const TextStyle(
-                        fontSize: 24,
-                        color: Colors.purpleAccent,
+                        fontSize: 25,
+                        color: verde,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(height: 20),
                     Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF1C1C3A),
-                          borderRadius: BorderRadius.circular(20),
+                      child: TableCalendar(
+                        firstDay: DateTime.utc(2000, 1, 1),
+                        lastDay: DateTime.utc(2100, 12, 31),
+                        focusedDay: _fechaSeleccionada,
+                        selectedDayPredicate: (day) =>
+                            isSameDay(day, _fechaSeleccionada),
+                        onDaySelected: (selectedDay, focusedDay) {
+                          setState(() {
+                            _fechaSeleccionada = selectedDay;
+                          });
+                          _mostrarHoraAsistencia(selectedDay);
+                        },
+                        headerStyle: const HeaderStyle(
+                          titleTextStyle: TextStyle(
+                            color: Colors.white,
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          formatButtonVisible: false,
+                          leftChevronIcon:
+                              Icon(Icons.chevron_left, color: Colors.white),
+                          rightChevronIcon:
+                              Icon(Icons.chevron_right, color: Colors.white),
+                          headerPadding: EdgeInsets.symmetric(vertical: 8),
                         ),
-                        child: TableCalendar(
-                          firstDay: DateTime.utc(2000, 1, 1),
-                          lastDay: DateTime.utc(2100, 12, 31),
-                          focusedDay: _fechaSeleccionada,
-                          selectedDayPredicate: (day) => isSameDay(day, _fechaSeleccionada),
-                          onDaySelected: (selectedDay, focusedDay) {
-                            setState(() {
-                              _fechaSeleccionada = selectedDay;
-                            });
-                            _mostrarHoraAsistencia(selectedDay);
+                        calendarStyle: const CalendarStyle(
+                          todayDecoration: BoxDecoration(
+                            color: Colors.blueAccent,
+                            shape: BoxShape.circle,
+                          ),
+                          outsideDaysVisible: false,
+                        ),
+                        calendarBuilders: CalendarBuilders(
+                          defaultBuilder: (context, date, _) {
+                            final estado =
+                                asistenciasMap[_soloFecha(date)]?['estado'];
+                            return Container(
+                              margin: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: _getColor(estado),
+                                shape: BoxShape.circle,
+                              ),
+                              alignment: Alignment.center,
+                              child: Text(
+                                '${date.day}',
+                                style: const TextStyle(color: Colors.black),
+                              ),
+                            );
                           },
-                          headerStyle: const HeaderStyle(
-                            titleTextStyle: TextStyle(
-                              color: Colors.white,
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            formatButtonVisible: false,
-                            leftChevronIcon: Icon(Icons.chevron_left, color: Colors.white),
-                            rightChevronIcon: Icon(Icons.chevron_right, color: Colors.white),
-                            headerPadding: EdgeInsets.symmetric(vertical: 8),
-                          ),
-                          calendarStyle: const CalendarStyle(
-                            todayDecoration: BoxDecoration(
-                              color: Colors.blueAccent,
-                              shape: BoxShape.circle,
-                            ),
-                            outsideDaysVisible: false,
-                          ),
-                          calendarBuilders: CalendarBuilders(
-                            defaultBuilder: (context, date, _) {
-                              final estado = asistenciasMap[_soloFecha(date)]?['estado'];
-                              return Container(
-                                margin: const EdgeInsets.all(6),
-                                decoration: BoxDecoration(
-                                  color: _getColor(estado),
-                                  shape: BoxShape.circle,
-                                ),
-                                alignment: Alignment.center,
-                                child: Text(
-                                  '${date.day}',
-                                  style: const TextStyle(color: Colors.black),
-                                ),
-                              );
-                            },
-                          ),
                         ),
                       ),
                     ),
@@ -235,10 +224,14 @@ class _AsistenciasScreenState extends State<AsistenciasScreen> {
                       child: ElevatedButton(
                         onPressed: () => Navigator.pop(context),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.purpleAccent,
-                          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                          backgroundColor: verde,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 40, vertical: 12),
                         ),
-                        child: const Text("Regresar"),
+                        child: const Text(
+                          "Regresar",
+                          style: TextStyle(color: Colors.white),
+                        ),
                       ),
                     ),
                   ],

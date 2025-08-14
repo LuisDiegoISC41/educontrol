@@ -5,7 +5,8 @@ class DocenteRemoteDataSource {
     final data = await appBD.client
         .from('grupo')
         .select()
-        .eq('id_docente', idDocente);
+        .eq('id_docente', idDocente)
+        .order('id_grupo', ascending: false);
     return (data as List).cast<Map<String, dynamic>>();
   }
 }

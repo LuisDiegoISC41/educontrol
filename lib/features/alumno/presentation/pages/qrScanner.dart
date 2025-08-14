@@ -23,14 +23,14 @@ class _EscanearQRScreenState extends State<EscanearQRScreen> {
 
   Future<void> agregarAlumnoAGrupo(int idGrupo) async {
     try {
-      final hoy= DateTime.now();
-      final fechalocal=DateTime(hoy.year,hoy.month,hoy.day);
-      final fechaFormato= fechalocal.toIso8601String().substring(0,10);
+      final hoy = DateTime.now();
+      final fechalocal = DateTime(hoy.year, hoy.month, hoy.day);
+      final fechaFormato = fechalocal.toIso8601String().substring(0, 10);
 
       await Supabase.instance.client.from('alumno_grupo').insert({
         'id_alumno': widget.idAlumno,
         'id_grupo': idGrupo,
-        'fecha_ingreso':fechaFormato,
+        'fecha_ingreso': fechaFormato,
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -81,11 +81,31 @@ class _EscanearQRScreenState extends State<EscanearQRScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Colores de tu paleta
+    const Color primaryColor = Color(0xFF69F0AE); // Verde
+    const Color backgroundColor = Color(0xFF080E2A); // Azul oscuro
+    const Color accentColor = Color(0xFF2D0D5E); // Morado oscuro
+    const Color blanco = Color(0xFFFFFFFF); // Blanco
+
     return Scaffold(
-      appBar: AppBar(title: const Text("Escanear QR del Grupo")),
+      backgroundColor: backgroundColor, // Fondo general
+      appBar: AppBar(
+        title: const Text("Escanear QR del Grupo"),
+        backgroundColor: accentColor, // AppBar morado oscuro
+        foregroundColor: blanco, // Texto blanco
+      ),
       body: MobileScanner(
         controller: controller,
         onDetect: onDetect,
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: primaryColor, // Verde
+        onPressed: () {}, // Acción opcional
+        child: const Icon(
+          Icons.qr_code_scanner,
+          color: Colors.white, // Icono blanco
+          size: 28,
+        ),
       ),
     );
   }

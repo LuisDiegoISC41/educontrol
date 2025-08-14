@@ -220,7 +220,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       backgroundColor: const Color(0xFF0A0C2A),
       appBar: AppBar(
         backgroundColor: const Color(0xFF0A0C2A),
-        title: Text('Asistencias - ${widget.grupo}'),
+        title: Text('Asistencias - ${widget.grupo}',
+        style: const TextStyle(color: Colors.white),
+
+        ),
         actions: [
           // 🔹 Nuevo botón de LISTA al lado del QR
           IconButton(
@@ -260,19 +263,15 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Fecha seleccionada
-              Row(
-                children: [
-                  Text(
-                    _formatearFecha(_fechaSeleccionada),
-                    style: TextStyle(
-                      fontSize: 20,
-                      color: Colors.purple[200],
-                      fontWeight: FontWeight.w500,
-                    ),
+              Center(
+                child: Text(
+                  _formatearFecha(_fechaSeleccionada),
+                  style: TextStyle(
+                    fontSize: 20,
+                    color: Colors.purple[200],
+                    fontWeight: FontWeight.w500,
                   ),
-                  const SizedBox(width: 8),
-                  const Icon(Icons.calendar_today, color: Colors.greenAccent, size: 20),
-                ],
+                ),
               ),
 
               const SizedBox(height: 20),
@@ -290,16 +289,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                             ),
                             title: Text(alumnos[index]['nombre'], style: const TextStyle(color: Colors.white)),
                             subtitle: Text('Matrícula: ${alumnos[index]['matricula']}', style: const TextStyle(color: Colors.white70)),
-                            trailing: Checkbox(
-                              value: attendance[index],
-                              onChanged: (value) {
-                                setState(() {
-                                  attendance[index] = value!;
-                                });
-                              },
-                              checkColor: Colors.white,
-                              activeColor: Colors.deepPurpleAccent,
-                            ),
+                            
                             onTap: () {
                               if (idGrupo == null) return; // Seguridad por si no cargó el grupo aún
                               Navigator.push(
