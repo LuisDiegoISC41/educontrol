@@ -160,48 +160,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     }
   }
 
-  Future<void> guardarAsistenciaManual() async {
-    final supabase = Supabase.instance.client;
-
-    try {
-      if (idGrupo == null) throw 'ID de grupo no disponible';
-
-      final ahora = DateTime.now(); // Ahora local
-
-      // Crear nueva sesión manual si no existe
-      final qrToken = '${idGrupo}_${ahora.millisecondsSinceEpoch}';
-      final sesion = await supabase.from('sesion_clase').insert({
-        'id_grupo': idGrupo,
-        'fecha': ahora.toIso8601String(), // Hora local
-        'qr_token': qrToken,
-        'creada_por': widget.idDocente,
-      }).select('id_sesion').single();
-
-      final idSesion = sesion['id_sesion'];
-
-      // Insertar asistencias para los seleccionados
-      for (int i = 0; i < alumnos.length; i++) {
-        if (attendance[i]) {
-          await supabase.from('asistencia').insert({
-            'estado': 'Asistencia',
-            'fecha': ahora.toIso8601String().substring(0, 10),
-            'fecha_hora': ahora.toIso8601String(), // Hora local
-            'id_alumno': alumnos[i]['id_alumno'],
-            'id_sesion': idSesion,
-          });
-        }
-      }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Asistencias guardadas correctamente')),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al guardar asistencias: $e')),
-      );
-    }
-  }
-
   String _formatearFecha(DateTime fecha) {
     const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
     const meses = [
@@ -306,34 +264,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                           );
                         },
                       ),
-              ),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  TextButton(
-                    onPressed: () {
-                      setState(() {
-                        attendance = List.generate(attendance.length, (index) => false);
-                      });
-                    },
-                    child: const Text(
-                      'Cancelar',
-                      style: TextStyle(color: Colors.greenAccent, fontSize: 16),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () async {
-                      await guardarAsistenciaManual();
-                    },
-                    child: const Text(
-                      'Guardar',
-                      style: TextStyle(color: Colors.greenAccent, fontSize: 16),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
+              ),        
             ],
           ),
         ),

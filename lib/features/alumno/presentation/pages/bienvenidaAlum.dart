@@ -3,7 +3,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../asistencia/EscanearQrAsistencia.dart';
 import '../../../asistencia/asistencia.dart';
 import 'qrScanner.dart';
-import '../../../../login.dart'; // Ajusta la ruta si es necesario
+import '../../../../login.dart';
+import '../widgets/alumnoWidgets.dart'; // Importamos el SubjectCard separado
 
 class BienvenidaAlu extends StatefulWidget {
   final String nombreCompleto;
@@ -71,7 +72,7 @@ class _BienvenidaAluState extends State<BienvenidaAlu> {
           .from('alumno_grupo')
           .select('fecha_ingreso, grupo(id_grupo, nombre)')
           .eq('id_alumno', idAlumno!)
-          .order('fecha_ingreso', ascending: false);
+          .order('id_grupo', ascending: false);
 
       setState(() {
         subjects = (response as List)
@@ -105,8 +106,8 @@ class _BienvenidaAluState extends State<BienvenidaAlu> {
           padding: EdgeInsets.zero,
           children: [
             DrawerHeader(
-              decoration: BoxDecoration(
-                color: const Color(0xFF080E2A),
+              decoration: const BoxDecoration(
+                color: Color(0xFF080E2A),
               ),
               child: const Text(
                 'Alumno',
@@ -185,36 +186,28 @@ class _BienvenidaAluState extends State<BienvenidaAlu> {
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF2D0D5E),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        padding: const EdgeInsets.all(16),
-                        child: subjects.isEmpty
-                            ? const Center(
-                                child: Text(
-                                  'No hay clases registradas',
-                                  style: TextStyle(color: Colors.white70),
-                                ),
-                              )
-                            : ListView.separated(
-                                itemCount: subjects.length,
-                                separatorBuilder: (context, index) => Divider(
-                                  color: const Color(0xFF69F0AE),
-                                  thickness: 2,
-                                  height: 24,
-                                ),
-                                itemBuilder: (context, index) {
-                                  final subject = subjects[index];
-                                  return SubjectCard(
+                      child: subjects.isEmpty
+                          ? const Center(
+                              child: Text(
+                                'No hay clases registradas',
+                                style: TextStyle(color: Colors.white70),
+                              ),
+                            )
+                          : ListView.builder(
+                              itemCount: subjects.length,
+                              itemBuilder: (context, index) {
+                                final subject = subjects[index];
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 16),
+                                  child: SubjectCard(
                                     name: subject['name'],
                                     date: subject['date'],
                                     onTap: () {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => AsistenciasScreen(
+                                          builder: (context) =>
+                                              AsistenciasScreen(
                                             materia: subject['name'],
                                             idAlumno: idAlumno!,
                                             idGrupo: subject['idGrupo'],
@@ -222,10 +215,10 @@ class _BienvenidaAluState extends State<BienvenidaAlu> {
                                         ),
                                       );
                                     },
-                                  );
-                                },
-                              ),
-                      ),
+                                  ),
+                                );
+                              },
+                            ),
                     ),
                   ),
                 ],
@@ -287,81 +280,6 @@ class _BienvenidaAluState extends State<BienvenidaAlu> {
         backgroundColor: const Color(0xFF69F0AE),
         elevation: 12,
         child: const Icon(Icons.qr_code_scanner, color: Colors.white, size: 28),
-      ),
-    );
-  }
-}
-
-class SubjectCard extends StatelessWidget {
-  final String name;
-  final String date;
-  final VoidCallback onTap;
-
-  const SubjectCard({
-    super.key,
-    required this.name,
-    required this.date,
-    required this.onTap,
-  });
-
-  final String imageUrl =
-      'https://img.icons8.com/color/96/000000/book--v1.png';
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: const Color(0xFF2D0D5E),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  date,
-                  style: const TextStyle(color: Colors.white70, fontSize: 16),
-                ),
-              ],
-            ),
-            Image.network(
-              imageUrl,
-              width: 60,
-              height: 60,
-              loadingBuilder: (context, child, loadingProgress) {
-                if (loadingProgress == null) return child;
-                return const SizedBox(
-                  width: 60,
-                  height: 60,
-                  child: Center(
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                );
-              },
-              errorBuilder: (context, error, stackTrace) {
-                return const Icon(
-                  Icons.error,
-                  color: Colors.red,
-                  size: 40,
-                );
-              },
-            ),
-          ],
-        ),
       ),
     );
   }
